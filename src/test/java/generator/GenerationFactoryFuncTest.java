@@ -40,8 +40,10 @@ public class GenerationFactoryFuncTest {
 
         GenerationFactory factory = new GenerationFactory();
         Optional<Word> word = factory.findNextMove(board, rack, anchors);
+        assertThat(word.isPresent()).isTrue();
         board.addWord(word.get());
         board.printBoard();
+        System.out.println("SCORE: " + word.get().getScore());
     }
 
 
