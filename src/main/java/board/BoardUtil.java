@@ -26,11 +26,16 @@ public class BoardUtil {
                 .build();
     }
 
-    //TODO:
-    // - branie lewej czesci slowa
-    // - filtrowanie anchorow
-    // - scorowanie slow
-    // - znalezienie
+    static Set<Anchor> getAnchors(List<Word> words) {
+        Set<Anchor> anchors = modifiableEmptySet();
+        words.forEach(word -> {
+            switch (word.getType()) {
+                case VERTICAL -> anchors.addAll(verticalAnchors(word));
+                case HORIZONTAL -> anchors.addAll(horizontalAnchors(word));
+            }
+        });
+        return anchors;
+    }
 
     private static Field[][] setBonuses(Field[][] board) {
         board[0][0] = tripleWordField();
@@ -110,23 +115,12 @@ public class BoardUtil {
         return board;
     }
 
-    static Set<Anchor> getAnchors(List<Word> words) {
-        Set<Anchor> anchors = modifiableEmptySet();
-        words.forEach(word -> {
-            switch (word.getType()) {
-                case VERTICAL -> anchors.addAll(verticalAnchors(word));
-                case HORIZONTAL -> anchors.addAll(horizontalAnchors(word));
-            }
-        });
-        return anchors;
-    }
-
     private static Set<Anchor> verticalAnchors(Word word) {
         Set<Anchor> anchors = verticalSides(word);
         anchors.addAll(
                 Set.of(
-                        new Anchor(word.getStart() - 1, word.getVectorNo(), VERTICAL)
-//                        new Anchor(word.getStart() + word.getLength(), word.getVectorNo(), VERTICAL)
+                        new Anchor(word.getStart() - 1, word.getVectorNo(), VERTICAL),
+                        new Anchor(word.getStart() + word.getLength(), word.getVectorNo(), VERTICAL)
                 )
         );
         return anchors;
@@ -137,7 +131,7 @@ public class BoardUtil {
         Set<Anchor> anchors = modifiableEmptySet();
         for (int row = word.getStart(); row < word.getStart() + word.getLength(); row++) {
             anchors.add(new Anchor(row, col - 1, HORIZONTAL));
-//            anchors.add(new Anchor(row, col + 1, HORIZONTAL));
+            anchors.add(new Anchor(row, col + 1, HORIZONTAL));
         }
         return anchors;
     }
@@ -146,8 +140,8 @@ public class BoardUtil {
         Set<Anchor> anchors = horizontalSides(word);
         anchors.addAll(
                 Set.of(
-                        new Anchor(word.getVectorNo(), word.getStart() - 1, HORIZONTAL)
-//                        new Anchor(word.getVectorNo(), word.getStart() + word.getLength(), HORIZONTAL)
+                        new Anchor(word.getVectorNo(), word.getStart() - 1, HORIZONTAL),
+                        new Anchor(word.getVectorNo(), word.getStart() + word.getLength(), HORIZONTAL)
                 )
         );
         return anchors;
@@ -158,7 +152,7 @@ public class BoardUtil {
         Set<Anchor> anchors = modifiableEmptySet();
         for (int col = word.getStart(); col < word.getStart() + word.getLength(); col++) {
             anchors.add(new Anchor(row - 1, col, VERTICAL));
-//            anchors.add(new Anchor(row + 1, col, VERTICAL));
+            anchors.add(new Anchor(row + 1, col, VERTICAL));
         }
         return anchors;
     }

@@ -6,7 +6,6 @@ import board.Word;
 import dictionary.ScrabbleDictionary;
 import lombok.experimental.FieldDefaults;
 import player.Rack;
-import util.lists.Lists;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,10 +15,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static board.PlacementType.HORIZONTAL;
 import static dictionary.ScrabbleDictionary.scrabbleDictionary;
-import static generator.GeneratorUtil.horizontalAnchors;
+import static generator.GeneratorUtil.*;
 import static lombok.AccessLevel.PRIVATE;
+import static util.lists.Lists.modifiableEmptyList;
 
 @FieldDefaults(level = PRIVATE, makeFinal = true)
 public class GenerationFactory {
@@ -32,47 +31,32 @@ public class GenerationFactory {
     }
 
     public Optional<Word> findNextMove(Board board, Rack rack, Set<Anchor> anchors) {
-        //TODO:
-        // - Filter out vertical anchors
-        // - Get the highest scoring word
-        Optional<Word> horizontal = horizontalMove(board, rack, horizontalAnchors(anchors));
-//        Word vertical = verticalMove(board, rack, verticalAnchors(anchors));
+        Optional<Word> horizontal = generateMove(board, rack, anchors);
+        horizontal.ifPresent(word -> System.out.println("HIGHEST SCORING: " + word.stringForm()));
         return horizontal;
-
     }
 
-    private Optional<Word> horizontalMove(Board board, Rack rack, Set<Anchor> anchors) {
+    // sam ruch -> 40ms, 52, 39, 49, 45 (4 watki)
+    // sam ruch ->  64, 42, 42, 41 (1 watek)
+    private Optional<Word> generateMove(Board board, Rack rack, Set<Anchor> anchors) {
+        anchors.forEach(System.out::println);
         ExecutorService executorService = Executors.newFixedThreadPool(4);
-//        List<Future<List<Word>>> futures = modifiableEmptyList();
-        List<Callable<List<Word>>> executorTasks = Lists.modifiableEmptyList();
+        List<Callable<List<Word>>> executorTasks = modifiableEmptyList();
         anchors.forEach(anchor -> {
-            executorTasks.add(
-                    HorizontalGenerator.builder()
-                            .dictionary(dictionary)
-                            .anchorRow(anchor.row())
-                            .anchorCol(anchor.col())
-                            .type(HORIZONTAL)
-                            .board(board)
-                            .limit(7)
-                            .startingRack(rack)
-                            .words(Lists.modifiableEmptyList())
-                            .build()
-            );
+            switch (anchor.type()) {
+                case HORIZONTAL -> executorTasks.add(horizontalGenerator(anchor, board, rack, dictionary));
+                case VERTICAL -> executorTasks.add(verticalGenerator(anchor, board, rack, dictionary));
+            }
         });
-        List<Future<List<Word>>> results = Lists.modifiableEmptyList();
+        List<Future<List<Word>>> results = modifiableEmptyList();
         try {
-             results = executorService.invokeAll(executorTasks);
+            System.out.println("NUMBER OF HORIZONTAL TASKS: " + executorTasks.size());
+            results = executorService.invokeAll(executorTasks);
 
         } catch (InterruptedException e) {
-            throw new RuntimeException("Wyjebilo sie przy generacji horyzontalnej");
+            throw new RuntimeException("Error during horizontal generation");
         }
 
         return GeneratorUtil.getMaxWord(results);
-
     }
-
-
-//    private Word verticalMove(Board board, Rack rack, Set<Anchor> anchors) {
-//
-//    }
 }

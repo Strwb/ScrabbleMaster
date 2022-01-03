@@ -30,6 +30,10 @@ public class Rack {
         return true;
     }
 
+    public int size() {
+        return letters.size();
+    }
+
     public static class RackFactory {
 
         public static Rack emptyRack() {

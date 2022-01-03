@@ -9,6 +9,7 @@ import java.util.List;
 
 import static board.WordUtil.calculateWordScore;
 import static util.lists.Lists.modifiableCopyOf;
+import static util.lists.Lists.modifiableEmptyList;
 
 @Value
 @Builder
@@ -19,6 +20,8 @@ public class Word {
     int vectorNo;
     int start;
     List<Field> letters;
+    @Builder.Default
+    List<Field> freshLetters = modifiableEmptyList();
 
     public Word withField(Field field) {
         var expanded = modifiableCopyOf(letters);

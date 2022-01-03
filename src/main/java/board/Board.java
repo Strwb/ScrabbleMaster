@@ -31,10 +31,13 @@ public class Board {
             case HORIZONTAL -> addWordHorizontally(word.getVectorNo(), word.getStart(), word.stringForm());
         }
         words.add(word);
+        //TODO Generate possibilities for that word:
+        // - Get anchors for that word
+        // - Update possibilities for each field, using word generation
     }
 
-    public static Board freshScrabbleBoard() {
-        return generateScrabbleBoard();
+    public void updatePossibilities(Set<Character> possibilities, int row, int col) {
+        checkField(row, col).ifPresent(field -> field.setPossibilities(possibilities));
     }
 
     public Set<Anchor> getAnchors() {
@@ -55,9 +58,13 @@ public class Board {
         System.out.println(sb.toString());
     }
 
+    public static Board freshScrabbleBoard() {
+        return generateScrabbleBoard();
+    }
+
     private void setField(int row, int col, Character value) {
         if (indicesCorrect(row, col) && board[row][col].getValue().equals('/')) {
-            board[row][col] = assignField(value);
+            board[row][col] = assignField(Character.toLowerCase(value));
         }
     }
 
@@ -71,32 +78,12 @@ public class Board {
 
     private void addWordHorizontally(int startRow, int startCol, String word) {
         int charIndex = 0;
+
         for (int col = startCol; col < startCol + word.length(); col++) {
             setField(startRow, col, word.charAt(charIndex));
             charIndex++;
         }
     }
-
-//    private Set<Character> calculatePossibilities(int startRow, int startCol, String word, PlacementType type) {
-//        switch (type) {
-//            case HORIZONTAL -> {
-//                return possibilitiesHorizontal(startRow, startCol, word);
-//            }
-//            case VERTICAL -> {
-//                return possibilitiesVertical(startRow, startCol, word);
-//            }
-//        }
-//    }
-//
-//    private Set<Character> possibilitiesHorizontal(int startRow, int startCol, String word) {
-//        Field field = board[startRow][startCol];
-//        var pre = new Coordinate(startRow, startCol - 1);
-//        var post = new Coordinate(startRow, startCol + word.length());
-//    }
-//
-//    private Set<Character> possibilitiesVertical(int startRow, int startCol, String word) {
-//        Field field = board[startRow][startCol];
-//    }
 
     private static boolean indicesCorrect(int row, int col) {
         return (row >= 0) && (row < 15) && (col >= 0) && (col < 15);
@@ -105,14 +92,4 @@ public class Board {
     public record Anchor(int row, int col, PlacementType type) {
     }
 
-    private record Coordinate(int row, int col) {
-
-        boolean isCorrect() {
-            return row < 0 ||
-                    row >= 15 ||
-                    col < 0 ||
-                    col >= 15;
-
-        }
-    }
 }

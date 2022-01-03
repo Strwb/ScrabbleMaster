@@ -5,7 +5,7 @@ import lombok.Value;
 
 import java.util.*;
 
-import static dictionary.TrieNode.emptyDictionaryNode;
+import static dictionary.TrieNode.errorNode;
 import static java.util.Collections.emptyMap;
 
 @Builder
@@ -41,9 +41,12 @@ public class Trie { //TODO test this shit
 
     private TrieNode findWord(String word, int letterIndex, TrieNode node) {
         if ((letterIndex < word.length()) && node.hasNeighbour(word.charAt(letterIndex))) {
-            return findWord(word, letterIndex + 1, node.getNeighbour(word.charAt(letterIndex)).orElse(emptyDictionaryNode()));
-        } else {
+            return findWord(word, letterIndex + 1, node.getNeighbour(word.charAt(letterIndex)).get());
+        } else if (letterIndex >= word.length()) {
             return node;
+        } else {
+            System.out.println("ERROR while searching for word: " + word);
+            return errorNode();
         }
     }
 

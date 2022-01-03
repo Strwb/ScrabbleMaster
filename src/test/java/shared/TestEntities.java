@@ -13,16 +13,18 @@ import static board.PlacementType.VERTICAL;
 public class TestEntities {
 
     public static List<Word> createTwoTestWords(Board board) {
-        return List.of(createDupa(board), createUrna(board));
+        return List.of(createDomek(board), createUrna(board));
     }
 
-    private static Word createDupa(Board board) {
+    private static Word createDomek(Board board) {
         Field d = board.checkField(7, 7).get().withLetter('d');
-        Field u = board.checkField(7, 8).get().withLetter('u');
-        Field p = board.checkField(7, 9).get().withLetter('p');
-        Field a = board.checkField(7, 10).get().withLetter('a');
+        Field o = board.checkField(7, 8).get().withLetter('o');
+        Field m = board.checkField(7, 9).get().withLetter('m');
+        Field k = board.checkField(7, 10).get().withLetter('k');
+        Field i = board.checkField(7, 11).get().withLetter('i');
+
         return Word.builder()
-                .letters(List.of(d, u, p, a))
+                .letters(List.of(d, o, m, k, i))
                 .type(HORIZONTAL)
                 .vectorNo(7)
                 .start(7)
@@ -30,14 +32,16 @@ public class TestEntities {
     }
 
     private static Word createUrna(Board board) {
-        Field r = board.checkField(8, 8).get().withLetter('r');
-        Field n = board.checkField(9, 8).get().withLetter('n');
-        Field a = board.checkField(10, 8).get().withLetter('a');
+        Field k = board.checkField(6, 8).get().withLetter('k');
+        Field o = board.checkField(7, 8).get().withLetter('o');
+        Field t = board.checkField(8, 8).get().withLetter('t');
+        Field e = board.checkField(9, 8).get().withLetter('e');
+        Field k1 = board.checkField(11, 8).get().withLetter('k');
         return Word.builder()
-                .letters(List.of(r, n, a))
+                .letters(List.of(k, o, t, e, k1))
                 .type(VERTICAL)
                 .vectorNo(8)
-                .start(8)
+                .start(6)
                 .build();
     }
 
@@ -60,6 +64,10 @@ public class TestEntities {
 
     public static Rack createTestRack() {
         Rack rack = Rack.RackFactory.emptyRack();
-        return rack.withLetters(List.of('a', 'g', 'e', 'z', 'p', 'e', 'i'));
+        return rack.withLetters(List.of('d', 'f', 'e', 'a', 'ą', 'r', 'i'));
+//        return rack.withLetters(List.of('a', 'g', 'e', 'z', 'p', 'e', 'i'));
+//        return rack.withLetters(List.of('a', 'd', 'k'));
+//        return rack.withLetters(List.of('e', 'k'));
+//        return rack.withLetters(List.of('d', 'e', 'a'));
     }
 }

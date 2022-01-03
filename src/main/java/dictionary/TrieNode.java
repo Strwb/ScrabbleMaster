@@ -3,8 +3,9 @@ package dictionary;
 import lombok.Builder;
 import lombok.Value;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
 
@@ -16,9 +17,14 @@ public class TrieNode {
 
     Map<Character, TrieNode> neighbours;
 
+    @Builder.Default
+    boolean endOfWord = false;
+
     public void addNeighbour(String payload) {
-        if (payload.length() > 0) {
+        if (payload.length() > 1) {
             add(payload);
+        } else if (payload.length() == 1) {
+            addTerminal(payload);
         }
     }
 
@@ -26,8 +32,22 @@ public class TrieNode {
         return neighbours.containsKey(character);
     }
 
+    public boolean isError() {
+        return letter == '@';
+    }
+
     public boolean isTerminal() {
         return neighbours.isEmpty();
+    }
+
+    public boolean isEndOfWord() {
+        return endOfWord;
+    }
+
+    public boolean isCorrect() {
+        return letter != ' ' &&
+                letter != '/' &&
+                letter != '@';
     }
 
     public Optional<TrieNode> getNeighbour(Character key) {
@@ -49,6 +69,20 @@ public class TrieNode {
         neighbours.get(firstLetter).addNeighbour(cutPayload);
     }
 
+    private void addTerminal(String payload) {
+        Character firstLetter = payload.charAt(0);
+        if (!letterAmongChildren(firstLetter)) {
+            neighbours.put(
+                    firstLetter,
+                    TrieNode.builder()
+                            .letter(firstLetter)
+                            .neighbours(new HashMap<>())
+                            .endOfWord(true)
+                            .build()
+            );
+        }
+    }
+
     private boolean letterAmongChildren(Character firstLetter) {
         return neighbours.keySet().stream().anyMatch(key -> key.equals(firstLetter));
     }
@@ -56,7 +90,14 @@ public class TrieNode {
     public static TrieNode emptyDictionaryNode() {
         return TrieNode.builder()
                 .letter(' ')
-                .neighbours(Collections.emptyMap())
+                .neighbours(emptyMap())
+                .build();
+    }
+
+    public static TrieNode errorNode() {
+        return TrieNode.builder()
+                .letter('@')
+                .neighbours(emptyMap())
                 .build();
     }
 }
