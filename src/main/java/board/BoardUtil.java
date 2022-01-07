@@ -1,5 +1,7 @@
 package board;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,7 @@ import static util.lists.Lists.modifiableEmptyList;
 import static util.logic.LogicalExpressions.not;
 import static util.sets.Sets.modifiableEmptySet;
 
+@UtilityClass
 public class BoardUtil {
 
     static Board generateScrabbleBoard() {
@@ -29,12 +32,16 @@ public class BoardUtil {
     static Set<Anchor> getAnchors(List<Word> words) {
         Set<Anchor> anchors = modifiableEmptySet();
         words.forEach(word -> {
-            switch (word.getType()) {
-                case VERTICAL -> anchors.addAll(verticalAnchors(word));
-                case HORIZONTAL -> anchors.addAll(horizontalAnchors(word));
-            }
+            anchors.addAll(getAnchors(word));
         });
         return anchors;
+    }
+
+    static Set<Anchor> getAnchors(Word word) {
+        return switch (word.getType()) {
+            case VERTICAL ->  verticalAnchors(word);
+            case HORIZONTAL -> horizontalAnchors(word);
+        };
     }
 
     private static Field[][] setBonuses(Field[][] board) {

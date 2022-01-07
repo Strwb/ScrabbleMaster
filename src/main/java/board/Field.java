@@ -1,6 +1,7 @@
 package board;
 
 import lombok.Builder;
+import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.With;
 
@@ -13,7 +14,7 @@ import static board.WordUtil.wholeAlphabet;
 @Builder
 @Value
 @With
-public class Field {
+public class Field implements Cloneable {
 
     Character value;
     FieldBonus bonus;
@@ -24,20 +25,17 @@ public class Field {
         return possibilities.contains(value);
     }
 
-    public void addPossibility(Character value) {
-        possibilities.add(value);
-    }
-
-    public void removePossibility(Character value) {
-        possibilities.remove(value);
-    }
-
-    public Field setPossibilities(Set<Character> possibilities) {
-        return this.withPossibilities(possibilities);
+    public void setPossibilities(Set<Character> possibilities) {
+        this.withPossibilities(possibilities);
     }
 
     public Field withLetter(Character letter) {
         return this.withValue(letter);
+    }
+
+    @SneakyThrows
+    public Field clone() {
+        return (Field) super.clone();
     }
 
     public static Field emptyField() {

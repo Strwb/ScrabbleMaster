@@ -153,13 +153,16 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
 
                     if (fld.isEmpty()) {
 
-                        rack.getLetters().forEach(letter -> {
+
+                        rack.getLetters().stream()
+                                .filter(fld::isPossibility)
+                                .forEach(letter -> {
 
                             if (node.hasNeighbour(letter)) {
 
                                 Field populatedField = fld.withLetter(letter);
 
-                                Word extendedWord = word.wordWithLetter(
+                                Word extendedWord = word.extend(
                                         word.getType(),
                                         word.getVectorNo(),
                                         start,
@@ -219,7 +222,9 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
         Optional<Field> boardField = board.checkField(row, col);
         boardField.ifPresent(field -> {
             if (field.isEmpty()) {
-                candidate.rack().getLetters().forEach(letter -> {
+                candidate.rack().getLetters().stream()
+                        .filter(field::isPossibility)
+                        .forEach(letter -> {
                     if (node.hasNeighbour(letter)) {
                         Field populatedField = field.withLetter(letter);
                         WordCandidate extendedCandidate = wordCandidate(

@@ -7,8 +7,6 @@ import java.util.List;
 import static board.Board.freshScrabbleBoard;
 import static board.Field.*;
 import static board.FieldBonus.NONE;
-import static board.PlacementType.HORIZONTAL;
-import static board.PlacementType.VERTICAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static shared.TestEntities.createTwoTestWords;
 
@@ -26,7 +24,8 @@ public class BoardFuncTest {
     public void shouldAddWords() {
         Board board = freshScrabbleBoard();
         List<Word> words = createTwoTestWords(board);
-        words.forEach(board::addWord);
+//        words.forEach(board::addWord);
+        board = board.addWords(words);
         assertThat(board.checkField(7, 7).get().getValue()).isEqualTo(Character.valueOf('d'));
         assertThat(board.checkField(7, 8).get().getValue()).isEqualTo(Character.valueOf('u'));
         assertThat(board.checkField(7, 9).get().getValue()).isEqualTo(Character.valueOf('p'));

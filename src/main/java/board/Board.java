@@ -1,5 +1,6 @@
 package board;
 
+import generator.possibilities.PossibilitiesFactory.StampedAnchor;
 import lombok.Builder;
 import lombok.Value;
 
@@ -10,6 +11,7 @@ import java.util.Set;
 import static board.BoardUtil.generateScrabbleBoard;
 import static board.BoardUtil.isAnchorViable;
 import static board.Field.assignField;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 
 @Value
@@ -25,19 +27,37 @@ public class Board {
                 Optional.empty();
     }
 
-    public void addWord(Word word) {
+    public Optional<Field> checkField(Coordinate coordinate) {
+        return indicesCorrect(coordinate.row(), coordinate.col()) ?
+                Optional.of(board[coordinate.col()][coordinate.row()]) :
+                Optional.empty();
+    }
+
+    public Board addWords(List<Word> words) {
+        return Boards.addWord(words, this);
+    }
+
+    public Board addWords(Word word) {
+        return Boards.addWord(singletonList(word), this);
+    }
+
+    void attemptAddition(Word word) {
         switch (word.getType()) {
             case VERTICAL -> addWordVertically(word.getStart(), word.getVectorNo(), word.stringForm());
             case HORIZONTAL -> addWordHorizontally(word.getVectorNo(), word.getStart(), word.stringForm());
         }
         words.add(word);
-        //TODO Generate possibilities for that word:
-        // - Get anchors for that word
-        // - Update possibilities for each field, using word generation
+
     }
 
-    public void updatePossibilities(Set<Character> possibilities, int row, int col) {
-        checkField(row, col).ifPresent(field -> field.setPossibilities(possibilities));
+    private void updatePossibilities(StampedAnchor stamped) {
+        checkField(stamped.row(), stamped.col())
+                .ifPresent(field -> field.setPossibilities(stamped.possibilities()));
+    }
+
+    public void updatePossibilities(Set<StampedAnchor> stamps) {
+        stamps.stream()
+                .forEach(this::updatePossibilities);
     }
 
     public Set<Anchor> getAnchors() {

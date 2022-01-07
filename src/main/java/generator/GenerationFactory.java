@@ -15,8 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static dictionary.ScrabbleDictionary.scrabbleDictionary;
-import static generator.GeneratorUtil.*;
+import static generator.GeneratorUtil.horizontalGenerator;
+import static generator.GeneratorUtil.verticalGenerator;
 import static lombok.AccessLevel.PRIVATE;
 import static util.lists.Lists.modifiableEmptyList;
 
@@ -25,21 +25,20 @@ public class GenerationFactory {
 
     ScrabbleDictionary dictionary;
 
-    public GenerationFactory() {
-        dictionary = scrabbleDictionary();
-        dictionary.loadDictionary();
+    public GenerationFactory(ScrabbleDictionary dictionary) {
+        this.dictionary = dictionary;
     }
 
     public Optional<Word> findNextMove(Board board, Rack rack, Set<Anchor> anchors) {
         Optional<Word> horizontal = generateMove(board, rack, anchors);
         horizontal.ifPresent(word -> System.out.println("HIGHEST SCORING: " + word.stringForm()));
+
         return horizontal;
     }
 
     // sam ruch -> 40ms, 52, 39, 49, 45 (4 watki)
     // sam ruch ->  64, 42, 42, 41 (1 watek)
     private Optional<Word> generateMove(Board board, Rack rack, Set<Anchor> anchors) {
-        anchors.forEach(System.out::println);
         ExecutorService executorService = Executors.newFixedThreadPool(4);
         List<Callable<List<Word>>> executorTasks = modifiableEmptyList();
         anchors.forEach(anchor -> {
@@ -48,9 +47,8 @@ public class GenerationFactory {
                 case VERTICAL -> executorTasks.add(verticalGenerator(anchor, board, rack, dictionary));
             }
         });
-        List<Future<List<Word>>> results = modifiableEmptyList();
+        List<Future<List<Word>>> results;
         try {
-            System.out.println("NUMBER OF HORIZONTAL TASKS: " + executorTasks.size());
             results = executorService.invokeAll(executorTasks);
 
         } catch (InterruptedException e) {
