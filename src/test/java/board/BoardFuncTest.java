@@ -1,12 +1,14 @@
 package board;
 
+import board.board.Board;
+import board.words.Word;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static board.Board.freshScrabbleBoard;
-import static board.Field.*;
-import static board.FieldBonus.NONE;
+import static board.board.Board.freshScrabbleBoard;
+import static board.board.fields.Field.*;
+import static board.board.fields.FieldBonus.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static shared.TestEntities.createTwoTestWords;
 

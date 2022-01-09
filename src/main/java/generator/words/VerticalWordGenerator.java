@@ -1,22 +1,22 @@
-package generator;
+package generator.words;
 
-import board.Board;
-import board.Field;
-import board.Word;
+import board.board.Board;
+import board.board.fields.Field;
+import board.words.Word;
 import dictionary.ScrabbleDictionary;
 import dictionary.TrieNode;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.Value;
-import player.Rack;
+import player.letters.Rack;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static board.PlacementType.VERTICAL;
-import static board.Word.WordCandidate.wordCandidate;
-import static generator.GeneratorUtil.overrideAttempt;
+import static board.board.fields.PlacementType.VERTICAL;
+import static board.words.Word.WordCandidate.wordCandidate;
+import static generator.words.GeneratorUtil.overrideAttempt;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;

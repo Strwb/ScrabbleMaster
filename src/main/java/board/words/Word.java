@@ -1,13 +1,15 @@
-package board;
+package board.words;
 
+import board.board.fields.Field;
+import board.board.fields.PlacementType;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
-import player.Rack;
+import player.letters.Rack;
 
 import java.util.List;
 
-import static board.WordUtil.calculateWordScore;
+import static board.words.WordUtil.calculateWordScore;
 import static util.lists.Lists.modifiableCopyOf;
 
 @Value

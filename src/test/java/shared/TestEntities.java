@@ -1,14 +1,14 @@
 package shared;
 
-import board.Board;
-import board.Field;
-import board.Word;
-import player.Rack;
+import board.board.Board;
+import board.board.fields.Field;
+import board.words.Word;
+import player.letters.Rack;
 
 import java.util.List;
 
-import static board.PlacementType.HORIZONTAL;
-import static board.PlacementType.VERTICAL;
+import static board.board.fields.PlacementType.HORIZONTAL;
+import static board.board.fields.PlacementType.VERTICAL;
 
 public class TestEntities {
 

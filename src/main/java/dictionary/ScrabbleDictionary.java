@@ -1,6 +1,6 @@
 package dictionary;
 
-import board.Word;
+import board.words.Word;
 import io.DictionaryReader;
 import io.Reader;
 import lombok.Builder;

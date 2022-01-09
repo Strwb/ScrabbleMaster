@@ -1,6 +1,6 @@
 package player;
 
-import board.Board;
+import board.board.Board;
 
 public interface Player {
 

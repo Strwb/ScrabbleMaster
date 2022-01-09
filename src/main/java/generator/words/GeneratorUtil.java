@@ -1,11 +1,11 @@
-package generator;
+package generator.words;
 
-import board.Board;
-import board.Board.Anchor;
-import board.Field;
-import board.Word;
+import board.board.Board;
+import board.board.Board.Anchor;
+import board.board.fields.Field;
+import board.words.Word;
 import dictionary.ScrabbleDictionary;
-import player.Rack;
+import player.letters.Rack;
 import util.lists.Lists;
 
 import java.util.*;
@@ -13,8 +13,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
-import static board.PlacementType.HORIZONTAL;
-import static board.PlacementType.VERTICAL;
+import static board.board.fields.PlacementType.HORIZONTAL;
+import static board.board.fields.PlacementType.VERTICAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static util.lists.Lists.modifiableEmptyList;
@@ -34,9 +34,13 @@ public class GeneratorUtil {
                 .collect(toSet());
     }
 
-    public static Optional<Word> getMaxWord(List<Future<List<Word>>> futures) {
-        return extractWordsFromFutures(futures).stream()
+    public static Optional<Word> getMaxWord(List<Word> results) {
+        return results.stream()
                 .max(Comparator.comparing(Word::getScore));
+    }
+
+    public static List<Word> getGeneratedWords(List<Future<List<Word>>> futures) {
+        return extractWordsFromFutures(futures);
     }
 
     private static List<Word> extractWordsFromFutures(List<Future<List<Word>>> futures) {

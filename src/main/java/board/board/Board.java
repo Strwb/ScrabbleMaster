@@ -1,6 +1,10 @@
-package board;
+package board.board;
 
-import generator.possibilities.PossibilitiesFactory.StampedAnchor;
+
+import board.board.fields.Field;
+import board.board.fields.PlacementType;
+import board.words.Word;
+import generator.possibilities.PossibilitiesFactory;
 import lombok.Builder;
 import lombok.Value;
 
@@ -8,9 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static board.BoardUtil.generateScrabbleBoard;
-import static board.BoardUtil.isAnchorViable;
-import static board.Field.assignField;
+import static board.board.fields.Field.assignField;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 
@@ -50,19 +52,18 @@ public class Board {
 
     }
 
-    private void updatePossibilities(StampedAnchor stamped) {
+    private void updatePossibilities(PossibilitiesFactory.StampedAnchor stamped) {
         checkField(stamped.row(), stamped.col())
                 .ifPresent(field -> field.setPossibilities(stamped.possibilities()));
     }
 
-    public void updatePossibilities(Set<StampedAnchor> stamps) {
-        stamps.stream()
-                .forEach(this::updatePossibilities);
+    public void updatePossibilities(Set<PossibilitiesFactory.StampedAnchor> stamps) {
+        stamps.forEach(this::updatePossibilities);
     }
 
     public Set<Anchor> getAnchors() {
         return BoardUtil.getAnchors(words).stream()
-                .filter(isAnchorViable(this))
+                .filter(BoardUtil.isAnchorViable(this))
                 .collect(toSet());
     }
 
@@ -79,7 +80,7 @@ public class Board {
     }
 
     public static Board freshScrabbleBoard() {
-        return generateScrabbleBoard();
+        return BoardUtil.generateScrabbleBoard();
     }
 
     private void setField(int row, int col, Character value) {

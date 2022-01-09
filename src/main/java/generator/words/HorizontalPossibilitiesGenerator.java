@@ -1,12 +1,12 @@
-package generator;
+package generator.words;
 
-import board.Board;
-import board.Word;
+import board.board.Board;
+import board.words.Word;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static board.Board.Anchor;
+import static board.board.Board.Anchor;
 
 public class HorizontalPossibilitiesGenerator implements Callable<Set<Character>> {
 

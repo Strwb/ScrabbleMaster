@@ -1,6 +1,6 @@
-package generator;
+package generator.words;
 
-import board.Word;
+import board.words.Word;
 
 import java.util.List;
 

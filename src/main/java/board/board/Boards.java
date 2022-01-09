@@ -1,5 +1,6 @@
-package board;
+package board.board;
 
+import board.words.Word;
 import lombok.experimental.UtilityClass;
 import util.Arrays.Arrays;
 import util.lists.Lists;

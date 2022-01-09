@@ -1,9 +1,9 @@
 package generator.possibilities;
 
-import board.Board;
-import board.Coordinate;
-import board.Field;
-import board.Word;
+import board.board.Board;
+import board.board.Coordinate;
+import board.board.fields.Field;
+import board.words.Word;
 import dictionary.ScrabbleDictionary;
 import dictionary.TrieNode;
 import lombok.Builder;
@@ -15,9 +15,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static board.PlacementType.HORIZONTAL;
-import static board.PlacementType.VERTICAL;
-import static board.WordUtil.wholeAlphabet;
+import static board.board.fields.PlacementType.HORIZONTAL;
+import static board.board.fields.PlacementType.VERTICAL;
+import static board.words.WordUtil.wholeAlphabet;
 import static com.google.common.collect.Sets.intersection;
 import static generator.possibilities.PossibilitiesFactory.Traversal.*;
 import static java.util.stream.Collectors.toSet;

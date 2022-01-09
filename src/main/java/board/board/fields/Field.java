@@ -1,4 +1,4 @@
-package board;
+package board.board.fields;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -7,9 +7,9 @@ import lombok.With;
 
 import java.util.Set;
 
-import static board.FieldBonus.*;
-import static board.WordUtil.noPossibilites;
-import static board.WordUtil.wholeAlphabet;
+import static board.board.fields.FieldBonus.*;
+import static board.words.WordUtil.noPossibilites;
+import static board.words.WordUtil.wholeAlphabet;
 
 @Builder
 @Value

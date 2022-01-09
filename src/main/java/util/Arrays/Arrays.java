@@ -1,6 +1,6 @@
 package util.Arrays;
 
-import board.Field;
+import board.board.fields.Field;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

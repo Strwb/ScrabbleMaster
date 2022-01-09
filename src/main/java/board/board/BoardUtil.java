@@ -1,5 +1,7 @@
-package board;
+package board.board;
 
+import board.board.fields.Field;
+import board.words.Word;
 import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
@@ -7,10 +9,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static board.Board.Anchor;
-import static board.Field.*;
-import static board.PlacementType.HORIZONTAL;
-import static board.PlacementType.VERTICAL;
+import static board.board.Board.Anchor;
+import static board.board.fields.Field.*;
+import static board.board.fields.PlacementType.HORIZONTAL;
+import static board.board.fields.PlacementType.VERTICAL;
 import static util.lists.Lists.modifiableEmptyList;
 import static util.logic.LogicalExpressions.not;
 import static util.sets.Sets.modifiableEmptySet;
@@ -18,7 +20,7 @@ import static util.sets.Sets.modifiableEmptySet;
 @UtilityClass
 public class BoardUtil {
 
-    static Board generateScrabbleBoard() {
+    Board generateScrabbleBoard() {
         Field[][] board = new Field[15][15];
         for (Field[] row : board) {
             Arrays.fill(row, emptyField());
@@ -29,7 +31,7 @@ public class BoardUtil {
                 .build();
     }
 
-    static Set<Anchor> getAnchors(List<Word> words) {
+    public Set<Anchor> getAnchors(List<Word> words) {
         Set<Anchor> anchors = modifiableEmptySet();
         words.forEach(word -> {
             anchors.addAll(getAnchors(word));
@@ -37,14 +39,24 @@ public class BoardUtil {
         return anchors;
     }
 
-    static Set<Anchor> getAnchors(Word word) {
+    public Set<Anchor> getAnchors(Word word) {
         return switch (word.getType()) {
             case VERTICAL ->  verticalAnchors(word);
             case HORIZONTAL -> horizontalAnchors(word);
         };
     }
 
-    private static Field[][] setBonuses(Field[][] board) {
+    public Predicate<Anchor> isAnchorViable(Board board) {
+        return anchor -> not(
+                anchor.row() < 0 ||
+                        anchor.row() >= 15 ||
+                        anchor.col() < 0 ||
+                        anchor.col() >= 15 ||
+                        not(board.getBoard()[anchor.row()][anchor.col()].isEmpty())
+        );
+    }
+
+    private Field[][] setBonuses(Field[][] board) {
         board[0][0] = tripleWordField();
         board[0][3] = doubleLetterField();
         board[0][7] = tripleWordField();
@@ -122,7 +134,7 @@ public class BoardUtil {
         return board;
     }
 
-    private static Set<Anchor> verticalAnchors(Word word) {
+    private Set<Anchor> verticalAnchors(Word word) {
         Set<Anchor> anchors = verticalSides(word);
         anchors.addAll(
                 Set.of(
@@ -133,7 +145,7 @@ public class BoardUtil {
         return anchors;
     }
 
-    private static Set<Anchor> verticalSides(Word word) {
+    private Set<Anchor> verticalSides(Word word) {
         int col = word.getVectorNo();
         Set<Anchor> anchors = modifiableEmptySet();
         for (int row = word.getStart(); row < word.getStart() + word.getLength(); row++) {
@@ -143,7 +155,7 @@ public class BoardUtil {
         return anchors;
     }
 
-    private static Set<Anchor> horizontalAnchors(Word word) {
+    private Set<Anchor> horizontalAnchors(Word word) {
         Set<Anchor> anchors = horizontalSides(word);
         anchors.addAll(
                 Set.of(
@@ -154,7 +166,7 @@ public class BoardUtil {
         return anchors;
     }
 
-    private static Set<Anchor> horizontalSides(Word word) {
+    private Set<Anchor> horizontalSides(Word word) {
         int row = word.getVectorNo();
         Set<Anchor> anchors = modifiableEmptySet();
         for (int col = word.getStart(); col < word.getStart() + word.getLength(); col++) {
@@ -162,15 +174,5 @@ public class BoardUtil {
             anchors.add(new Anchor(row + 1, col, VERTICAL));
         }
         return anchors;
-    }
-
-    public static Predicate<Anchor> isAnchorViable(Board board) {
-        return anchor -> not(
-                anchor.row() < 0 ||
-                        anchor.row() >= 15 ||
-                        anchor.col() < 0 ||
-                        anchor.col() >= 15 ||
-                        not(board.getBoard()[anchor.row()][anchor.col()].isEmpty())
-        );
     }
 }

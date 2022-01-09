@@ -1,4 +1,6 @@
-package board;
+package board.words;
+
+import board.board.fields.Field;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +48,10 @@ public class WordUtil {
                 'ź',
                 'ż'
         );
+    }
+
+    public static List<Character> wholeAlphabetList() {
+        return List.copyOf(wholeAlphabet());
     }
 
     public static Set<Character> noPossibilites() {

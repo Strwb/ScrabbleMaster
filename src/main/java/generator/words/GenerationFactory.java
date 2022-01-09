@@ -1,11 +1,11 @@
-package generator;
+package generator.words;
 
-import board.Board;
-import board.Board.Anchor;
-import board.Word;
+import board.board.Board;
+import board.board.Board.Anchor;
+import board.words.Word;
 import dictionary.ScrabbleDictionary;
 import lombok.experimental.FieldDefaults;
-import player.Rack;
+import player.letters.Rack;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,8 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static generator.GeneratorUtil.horizontalGenerator;
-import static generator.GeneratorUtil.verticalGenerator;
+import static generator.words.GeneratorUtil.horizontalGenerator;
+import static generator.words.GeneratorUtil.verticalGenerator;
 import static lombok.AccessLevel.PRIVATE;
 import static util.lists.Lists.modifiableEmptyList;
 
@@ -30,15 +30,23 @@ public class GenerationFactory {
     }
 
     public Optional<Word> findNextMove(Board board, Rack rack, Set<Anchor> anchors) {
-        Optional<Word> horizontal = generateMove(board, rack, anchors);
-        horizontal.ifPresent(word -> System.out.println("HIGHEST SCORING: " + word.stringForm()));
+        Optional<Word> maxWord = generateMove(board, rack, anchors);
+        maxWord.ifPresent(word -> System.out.println("HIGHEST SCORING: " + word.stringForm()));
 
-        return horizontal;
+        return maxWord;
+    }
+
+    public List<Word> findPossibleMoves(Board board, Rack rack, Set<Anchor> anchors) {
+        return findBestMove(board, rack, anchors);
     }
 
     // sam ruch -> 40ms, 52, 39, 49, 45 (4 watki)
     // sam ruch ->  64, 42, 42, 41 (1 watek)
     private Optional<Word> generateMove(Board board, Rack rack, Set<Anchor> anchors) {
+        return GeneratorUtil.getMaxWord(findBestMove(board, rack, anchors));
+    }
+
+    private List<Word> findBestMove(Board board, Rack rack, Set<Anchor> anchors) {
         ExecutorService executorService = Executors.newFixedThreadPool(4);
         List<Callable<List<Word>>> executorTasks = modifiableEmptyList();
         anchors.forEach(anchor -> {
@@ -55,6 +63,6 @@ public class GenerationFactory {
             throw new RuntimeException("Error during horizontal generation");
         }
 
-        return GeneratorUtil.getMaxWord(results);
+        return GeneratorUtil.getGeneratedWords(results);
     }
 }

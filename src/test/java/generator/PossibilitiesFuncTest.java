@@ -1,18 +1,19 @@
 package generator;
 
-import board.Board;
-import board.Word;
+import board.board.Board;
+import board.words.Word;
 import dictionary.ScrabbleDictionary;
 import generator.possibilities.PossibilitiesFactory;
+import generator.words.GenerationFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import player.Rack;
+import player.letters.Rack;
 import shared.TestEntities;
 
 import java.util.List;
 import java.util.Optional;
 
-import static board.Board.freshScrabbleBoard;
+import static board.board.Board.freshScrabbleBoard;
 import static dictionary.ScrabbleDictionary.scrabbleDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 import static shared.TestEntities.createTestRack;

@@ -1,4 +1,4 @@
-package player;
+package player.letters;
 
 import lombok.Builder;
 import lombok.Value;
@@ -42,4 +42,10 @@ public class Rack {
                     .build();
         }
     }
+
+        //TODO
+        // 1. Get initial amounts of each letter in the bag
+        // 2. Subtract letters already on the board
+        // 3. Generate 7 letters, for each subtract in from available quantities
+        //      if we cant use this letter, then rerandomize
 }
