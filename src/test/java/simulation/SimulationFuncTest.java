@@ -1,4 +1,4 @@
-package generator;
+package simulation;
 
 import board.board.Board;
 import board.words.Word;
@@ -8,7 +8,6 @@ import generator.words.GenerationFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import player.letters.Rack;
-import shared.TestEntities;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,10 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static shared.TestEntities.createTestRack;
 import static shared.TestEntities.createTwoTestWordsHorizontalScenario;
 
-public class PossibilitiesFuncTest {
+public class SimulationFuncTest {
 
     private static GenerationFactory generationFactory;
     private static PossibilitiesFactory possibilitiesFactory;
+    private static Simulation simulation;
 
     @BeforeAll
     public static void setup() {
@@ -30,23 +30,12 @@ public class PossibilitiesFuncTest {
         dictionary.loadDictionary();
         generationFactory = new GenerationFactory(dictionary);
         possibilitiesFactory = new PossibilitiesFactory(dictionary);
-
+        simulation = new Simulation(generationFactory, possibilitiesFactory);
     }
 
     @Test
-    public void shouldFindPossibilitiesAroundNewWord() {
-        Board board = freshScrabbleBoard();
-        Word word = TestEntities.highScoringWord(board);
-        board = board.addWords(word);
-        board.printBoard();
-        var anchors = board.getAnchors();
-        var stamped = possibilitiesFactory.generatePossibilities(anchors, board);
-        System.out.println(stamped);
-        assertThat(stamped.size()).isGreaterThan(0);
-    }
+    public void shouldFindBestWord() {
 
-    @Test
-    public void shouldUseCalculatedPossibilities() {
         Board board = freshScrabbleBoard();
         List<Word> words = createTwoTestWordsHorizontalScenario(board);
         board = board.addWords(words);
@@ -56,23 +45,15 @@ public class PossibilitiesFuncTest {
         possibilitiesFactory.generatePossibilities(anchors, board);
 
         board.printBoard();
-        Optional<Word> word = generationFactory.findNextMove(board, rack, anchors);
 
+        Optional<Word> bestWord = simulation.simulate(board, rack);
 
-        board = board.addWords(word.get());
+        if (bestWord.isPresent()) {
+            board = board.addWords(bestWord.get());
+        }
+
         board.printBoard();
-    }
 
-    @Test
-    public void wordValidityPresentation() {
-
-        Board board = freshScrabbleBoard();
-        List<Word> words = TestEntities.createWordValidationScenario(board);
-        board = board.addWords(words);
-        board.printBoard();
-        var anchors = board.getAnchors();
-        var stamped = possibilitiesFactory.generatePossibilities(anchors, board);
-        System.out.println(stamped);
-        assertThat(stamped.size()).isGreaterThan(0);
+        assertThat(bestWord).isPresent();
     }
 }

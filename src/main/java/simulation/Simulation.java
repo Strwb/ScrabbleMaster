@@ -5,6 +5,7 @@ import board.words.Word;
 import dictionary.ScrabbleDictionary;
 import generator.possibilities.PossibilitiesFactory;
 import generator.words.GenerationFactory;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -23,8 +24,12 @@ import static lombok.AccessLevel.PRIVATE;
 import static util.lists.Lists.modifiableEmptyList;
 
 @Value
+@AllArgsConstructor
 @FieldDefaults(level = PRIVATE)
 public class Simulation {
+
+    // No multithreading - 1min 47s
+    // Multithreading - 1min 33s
 
     GenerationFactory generationFactory;
     PossibilitiesFactory possibilitiesFactory;
@@ -75,7 +80,6 @@ public class Simulation {
         } catch (InterruptedException e) {
             throw new RuntimeException("Error during horizontal generation");
         }
-
         OptionalDouble result = extractResult(results);
 
         return result.isPresent() ?
@@ -84,7 +88,7 @@ public class Simulation {
     }
 
     OptionalDouble extractResult(List<Future<Integer>> results) {
-        List<Integer> runResults= modifiableEmptyList();
+        List<Integer> runResults = modifiableEmptyList();
         results.forEach(future -> {
             try {
                 runResults.add(future.get());
@@ -97,9 +101,15 @@ public class Simulation {
                 .average();
     }
 
+    //TODO:
+    // - Premia 50 punktow za uzycie calej tacki
+    // - Sprawdzic inne zasady ktore mozna uzyc
+    // - Blank letter
+    // - Score existing words
+
     List<SimulationRun> perWordSimulation(Word word, Board board, Rack playerRack, LetterBag bag) {
         List<SimulationRun> runs = modifiableEmptyList();
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 8; i++) {
             runs.add(
                     SimulationRun.builder()
                             .bag(bag)
@@ -125,12 +135,6 @@ public class Simulation {
 
     @Builder
     private static class SimulationRun implements Callable<Integer> {
-        //TODO: Do this like 30 times per generated word
-        // 0. Update player's rack
-        // 1. Randomize opponent rack
-        // 2. Find best word for opponent rack -> Remember to update possibilities
-        // 4. Find best word for player's rack
-        // 5. Return originalScore - opponentScore + followScore
 
         Word original;
         Rack playerRack;
@@ -146,13 +150,14 @@ public class Simulation {
             int opponentScore;
             int simulationScore;
 
+            board = board.addWords(original);
+            updatePossibilities(board);
+
             playerRack = updatePlayerRack();
             Rack opponentRack = randomizeOpponentRack();
             Optional<Word> opponentWord = findOpponentMove(opponentRack);
 
-            opponentScore = opponentWord.isPresent() ?
-                    opponentWord.get().getScore() :
-                    0;
+            opponentScore = opponentWord.map(Word::getWordScore).orElse(0);
 
             if (opponentWord.isPresent()) {
                 board = placeWord(opponentWord.get());
@@ -161,16 +166,15 @@ public class Simulation {
 
             Optional<Word> simulationWord = findFinalPlayerWord(playerRack);
 
-            simulationScore = simulationWord.isPresent() ?
-                    simulationWord.get().getScore() :
-                    0;
+            simulationScore = simulationWord.map(Word::getWordScore).orElse(0);
 
             if (simulationWord.isPresent()) {
                 board = placeWord(simulationWord.get());
                 updatePossibilities(board);
             }
 
-            return simulationScore(original.getScore(), opponentScore, simulationScore);
+//            System.out.println(simulationScore(original.getWordScore(), opponentScore, simulationScore));
+            return simulationScore(original.getWordScore(), opponentScore, simulationScore);
         }
 
         public Word getOriginal() {

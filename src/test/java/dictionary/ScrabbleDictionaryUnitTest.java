@@ -14,7 +14,7 @@ public class ScrabbleDictionaryUnitTest {
     public void shouldAddSingleWord() {
         var scrabbleDictionary = givenEmptyScrabbleDictionary();
         scrabbleDictionary.add("uwaga");
-        assertThat(scrabbleDictionary.getDictionary().getRoot().getNeighbours().size()).isEqualTo(1);
+        assertThat(scrabbleDictionary.start().getNeighbours().size()).isEqualTo(1);
     }
 
     @Test
@@ -22,21 +22,21 @@ public class ScrabbleDictionaryUnitTest {
         var scrabbleDictionary = givenEmptyScrabbleDictionary();
         List<String> words = List.of("Artur", "anna", "bartek", "sylwia", "Weronika", "jan");
         scrabbleDictionary.add(words);
-        assertThat(scrabbleDictionary.getDictionary().getRoot().getNeighbours().size()).isEqualTo(5);
+        assertThat(scrabbleDictionary.start().getNeighbours().size()).isEqualTo(5);
     }
 
     @Test
     public void shouldLoadTestDictionary() {
         var scrabbleDictionary = givenEmptyScrabbleDictionary();
         scrabbleDictionary.loadTestDictionary();
-        assertThat(scrabbleDictionary.getDictionary().getRoot().getNeighbours().size()).isEqualTo(10);
+        assertThat(scrabbleDictionary.start().getNeighbours().size()).isEqualTo(10);
     }
 
     @Test
     @Disabled
-    public void shouldLoadMainDictionary() { // use with caution
+    public void shouldLoadMainDictionary() {
         var scrabbleDictionary = givenEmptyScrabbleDictionary();
         scrabbleDictionary.loadDictionary();
-        assertThat(scrabbleDictionary.getDictionary().getRoot().getNeighbours().size()).isEqualTo(32);
+        assertThat(scrabbleDictionary.start().getNeighbours().size()).isEqualTo(32);
     }
 }

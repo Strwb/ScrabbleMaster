@@ -45,9 +45,7 @@ public record LetterBag(Map<Character, Integer> quantities) {
     }
 
     public int size() {
-        return (int) this.quantities().entrySet().stream()
-                .map(Map.Entry::getValue)
-                .count();
+        return this.characterPool().size();
     }
 
     public static LetterBag initialBag() {

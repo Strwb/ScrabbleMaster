@@ -30,7 +30,7 @@ public class GenerationFactoryFuncTest {
     @Test
     public void shouldAddWordAndFindAnchors() {
         Board board = freshScrabbleBoard();
-        List<Word> words = createTwoTestWords(board);
+        List<Word> words = createTwoTestWordsHorizontalScenario(board);
         board = board.addWords(words);
         var anchors = board.getAnchors();
         assertThat(anchors.size()).isNotZero();
@@ -40,14 +40,34 @@ public class GenerationFactoryFuncTest {
     public void shouldCalculateWordScore() {
         Board board = freshScrabbleBoard();
         Word pieniadz = highScoringWord(board);
-        assertThat(pieniadz.getScore()).isEqualTo(45);
+        assertThat(pieniadz.getWordScore()).isEqualTo(45);
     }
 
     @Test
     public void shouldCalculateMove() {
 
         Board board = freshScrabbleBoard();
-        List<Word> words = createTwoTestWords(board);
+        List<Word> words = createTwoTestWordsHorizontalScenario(board);
+
+        board = board.addWords(words);
+
+        var anchors = board.getAnchors();
+        Rack rack = createTestRack();
+
+        board.printBoard();
+        Optional<Word> word = generationFactory.findNextMove(board, rack, anchors);
+
+        assertResultIsKefia(word);
+
+        board = board.addWords(word.get());
+        board.printBoard();
+    }
+
+    @Test
+    public void shouldCalculateVerticalMove() {
+
+        Board board = freshScrabbleBoard();
+        List<Word> words = createTwoTestWordsVerticalScenario(board);
 
         board = board.addWords(words);
 

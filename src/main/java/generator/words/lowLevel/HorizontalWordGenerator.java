@@ -1,4 +1,4 @@
-package generator.words;
+package generator.words.lowLevel;
 
 import board.board.Board;
 import board.board.fields.Field;
@@ -7,26 +7,22 @@ import board.words.Word.WordCandidate;
 import dictionary.ScrabbleDictionary;
 import dictionary.TrieNode;
 import lombok.Builder;
-import lombok.SneakyThrows;
 import lombok.Value;
 import player.letters.Rack;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import static board.board.fields.PlacementType.HORIZONTAL;
 import static board.words.Word.WordCandidate.wordCandidate;
-import static generator.words.GeneratorUtil.overrideAttempt;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static util.lists.Lists.modifiableEmptyList;
 import static util.logic.LogicalExpressions.not;
 
 @Builder
 @Value
-public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenerator {
+public class HorizontalWordGenerator implements WordGenerator {
 
     // space oznacza o ile pol jestesmy na lewo od anchora, 0 oznacza anchora, 1 o jeden w lewo od anchora itd.
 
@@ -35,27 +31,13 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
     int anchorRow;
     int anchorCol;
     ScrabbleDictionary dictionary;
-    List<Word> generatedWords;
+    List<WordCandidate> generatedWords;
 
-    @Override
-    @SneakyThrows
-    public List<Word> call() {
-        return generateWords();
+    public List<WordCandidate> generatedWords() {
+        return this.generatedWords;
     }
 
-    public List<Word> generateWords() {
-        generate();
-        return generatedWords.stream()
-                .filter(
-                        word -> not(
-                                    word.getLetters().stream()
-                                            .noneMatch(Field::isEmpty))
-                )
-                .filter(overrideAttempt(board))
-                .collect(toList());
-    }
-
-    private void generate() {
+    public void generate() {
         extendRight(generateLeft());
     }
 
@@ -66,12 +48,13 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
         }
 
         List<WordCandidate> candidates = modifiableEmptyList();
-        TrieNode root = dictionary.getDictionary().getRoot();
+        TrieNode root = dictionary.start();
 
         if (canMoveLeftward()) {
             searchLeftCandidates(calculateLeftSpace(), root, candidates);
         } else {
-            candidates.add(new WordCandidate(takeLeftWord(), startingRack));
+//            candidates.add(new WordCandidate(takeLeftWord(), startingRack, 0)); //TODO add bonus here (50 if cleared 7 letter starting rack)
+            candidates.add(wordCandidate(takeLeftWord(), startingRack)); //TODO add bonus here (50 if cleared 7 letter starting rack)
         }
         return candidates;
     }
@@ -92,7 +75,6 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
             col--;
             field = board.checkField(anchorRow, col);
         }
-
         return col + 1;
     }
 
@@ -106,22 +88,9 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
     }
 
     private int calculateLeftSpace() {
-        int col = anchorCol - 1;
-        int row = anchorRow;
-        int space = 0;
-        Optional<Field> leftNeighbour = board.checkField(row, col);
-        while (leftNeighbour.isPresent()) {
-            Field leftField = leftNeighbour.get();
-            if (not(leftField.isEmpty())) {
-                break;
-            }
-            space++;
-            col--;
-            leftNeighbour = board.checkField(row, col);
-        }
-        int fSpace = min(space, startingRack.size() - 1);
-        System.out.println("SPACE RETURNED: " + fSpace);
-        return fSpace;
+        return min(
+                BoardTraverser.goAllTheWayLeft(board, anchorRow, anchorCol),
+                (startingRack.size() - 1));
     }
 
     private boolean canMoveLeftward() {
@@ -137,6 +106,11 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
         }
     }
 
+    private int neighbourBonus(int row, int col, Character letter) {
+        return BoardBonusCalculator.verticalNeighbourBonus(dictionary, board, letter, row, col);
+    }
+
+    //TODO Tu dac dodawanie
     private void searchLeftCandidates(
             TrieNode node,
             Word word,
@@ -148,29 +122,24 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
             int start) {
 
         Optional<Field> field = board.checkField(row, col);
-
         field.ifPresent(fld -> {
-
                     if (fld.isEmpty()) {
-
-
                         rack.getLetters().stream()
                                 .filter(fld::isPossibility)
                                 .forEach(letter -> {
-
                             if (node.hasNeighbour(letter)) {
 
                                 Field populatedField = fld.withLetter(letter);
 
-                                Word extendedWord = word.extend(
+                                Word extendedWord = word.extend( // przy kazdym dodawaniu literki do word
                                         word.getType(),
                                         word.getVectorNo(),
                                         start,
-                                        populatedField);
+                                        populatedField,
+                                        neighbourBonus(row, col, letter)
+                                );
 
                                 Optional<TrieNode> neighbour = node.getNeighbour(letter);
-
-
                                 neighbour.ifPresent(n -> searchLeftCandidates(n,
                                         extendedWord,
                                         rack.withoutLetter(letter),
@@ -184,14 +153,12 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
                         });
                     } else {
                         candidates.add(wordCandidate(word, rack));
-
                     }
                 }
         );
     }
 
     private void extendRight(List<WordCandidate> leftParts) {
-//        leftParts.forEach(System.out::println);
         leftParts.forEach(
                 leftPart -> {
                     TrieNode node = dictionary.findWord(leftPart.word());
@@ -202,12 +169,13 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
         );
     }
 
+    //TODO -> Refactor, wywalic to isTerminal
     private void extendWord(WordCandidate candidate, TrieNode node, int row, int col) {
         if (node.isTerminal() && node.isCorrect() && finishedProperly(row, col, candidate)) {
-            this.generatedWords.add(candidate.word());
+            this.generatedWords.add(candidate.withScore(startingRack));
         } else {
             if (node.isEndOfWord() && finishedProperly(row, col, candidate)) {
-                this.generatedWords.add(candidate.word());
+                this.generatedWords.add(candidate.withScore((startingRack)));
             }
             extendWordRightward(candidate, node, row, col);
         }
@@ -218,17 +186,21 @@ public class HorizontalWordGenerator implements Callable<List<Word>>, WordGenera
         return rightNeighbour.isEmpty() || rightNeighbour.get().isEmpty();
     }
 
+    //TODO -> Tu dac dodawanie
     private void extendWordRightward(WordCandidate candidate, TrieNode node, int row, int col) {
         Optional<Field> boardField = board.checkField(row, col);
         boardField.ifPresent(field -> {
             if (field.isEmpty()) {
+
                 candidate.rack().getLetters().stream()
                         .filter(field::isPossibility)
                         .forEach(letter -> {
+
                     if (node.hasNeighbour(letter)) {
                         Field populatedField = field.withLetter(letter);
-                        WordCandidate extendedCandidate = wordCandidate(
-                                candidate.word().withField(populatedField),
+                        WordCandidate extendedCandidate = wordCandidate( // przy kazdym rozszerzaniu kandydata
+//                                candidate.word().withField(populatedField),
+                                candidate.word().withFieldAndBonus(populatedField, neighbourBonus(row, col, letter)),
                                 candidate.rack().withoutLetter(letter)
                         );
                         TrieNode neighbour = node.getNeighbour(letter).get();

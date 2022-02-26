@@ -1,31 +1,28 @@
-package generator.words;
+package generator.words.lowLevel;
 
 import board.board.Board;
 import board.board.fields.Field;
 import board.words.Word;
+import board.words.Word.WordCandidate;
 import dictionary.ScrabbleDictionary;
 import dictionary.TrieNode;
 import lombok.Builder;
-import lombok.SneakyThrows;
 import lombok.Value;
 import player.letters.Rack;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import static board.board.fields.PlacementType.VERTICAL;
 import static board.words.Word.WordCandidate.wordCandidate;
-import static generator.words.GeneratorUtil.overrideAttempt;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static util.lists.Lists.modifiableEmptyList;
 import static util.logic.LogicalExpressions.not;
 
 @Builder
 @Value
-public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerator {
+public class VerticalWordGenerator implements WordGenerator {
 
     // space oznacza o ile pol jestesmy na lewo od anchora, 0 oznacza anchora, 1 o jeden w lewo od anchora itd.
 
@@ -34,43 +31,29 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
     int anchorRow;
     int anchorCol;
     ScrabbleDictionary dictionary;
-    List<Word> generatedWords;
+    List<WordCandidate> generatedWords;
 
-    @Override
-    @SneakyThrows
-    public List<Word> call() {
-        return generateWords();
+    public List<WordCandidate> generatedWords() {
+        return this.generatedWords;
     }
 
-    public List<Word> generateWords() {
-        generate();
-        return generatedWords.stream()
-                .filter(
-                        word -> not(
-                                word.getLetters().stream()
-                                        .noneMatch(Field::isEmpty))
-                )
-                .filter(overrideAttempt(board))
-                .collect(toList());
-    }
-
-    private void generate() {
+    public void generate() {
         extendDown(generateUpper());
     }
 
-    private List<Word.WordCandidate> generateUpper() {
+    private List<WordCandidate> generateUpper() {
         Optional<Field> anchor = board.checkField(anchorRow, anchorCol);
         if (anchor.isEmpty()) {
             return emptyList();
         }
 
-        List<Word.WordCandidate> candidates = modifiableEmptyList();
-        TrieNode root = dictionary.getDictionary().getRoot();
+        List<WordCandidate> candidates = modifiableEmptyList();
+        TrieNode root = dictionary.start();
 
         if (canMoveUpperward()) {
             searchUpperCandidates(calculateUpperSpace(), root, candidates);
         } else {
-            candidates.add(new Word.WordCandidate(takeUpperWord(), startingRack));
+            candidates.add(wordCandidate(takeUpperWord(), startingRack));
         }
         return candidates;
     }
@@ -105,20 +88,9 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
     }
 
     private int calculateUpperSpace() {
-        int row = anchorRow - 1;
-        int col = anchorCol;
-        int space = 0;
-        Optional<Field> upperNeighbour = board.checkField(row, col);
-        while (upperNeighbour.isPresent()) {
-            Field upperField = upperNeighbour.get();
-            if (not(upperField.isEmpty())) {
-                break;
-            }
-            space++;
-            row--;
-            upperNeighbour = board.checkField(row, col);
-        }
-        return min(space, startingRack.size() - 1);
+        return min(
+                BoardTraverser.goAllTheWayUp(board, anchorRow, anchorCol),
+                (startingRack.size() - 1));
     }
 
     private boolean canMoveUpperward() {
@@ -126,7 +98,7 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
         return upperNeighbour.isPresent() && upperNeighbour.get().isEmpty();
     }
 
-    private void searchUpperCandidates(int upperSpace, TrieNode node, List<Word.WordCandidate> candidates) {
+    private void searchUpperCandidates(int upperSpace, TrieNode node, List<WordCandidate> candidates) {
         for (int i = 0; i <= upperSpace; i++) {
             int start = anchorRow - i;
             Word starter = upperStart(start);
@@ -134,11 +106,16 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
         }
     }
 
+    private int neighbourBonus(int row, int col, Character letter) {
+        return BoardBonusCalculator.horizontalNeighbourBonus(dictionary, board, letter, row, col);
+    }
+
+    //TODO Tu dac dodawanie
     private void searchUpperCandidates(
             TrieNode node,
             Word word,
             Rack rack,
-            List<Word.WordCandidate> candidates,
+            List<WordCandidate> candidates,
             int row,
             int col,
             int space,
@@ -162,7 +139,8 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
                                         word.getType(),
                                         word.getVectorNo(),
                                         start,
-                                        populatedField);
+                                        populatedField,
+                                        neighbourBonus(row, col, letter));
 
                                 Optional<TrieNode> neighbour = node.getNeighbour(letter);
 
@@ -186,7 +164,7 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
         );
     }
 
-    private void extendDown(List<Word.WordCandidate> upperParts) {
+    private void extendDown(List<WordCandidate> upperParts) {
         upperParts.forEach(
                 upperPart -> {
                     TrieNode node = dictionary.findWord(upperPart.word());
@@ -197,23 +175,24 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
         );
     }
 
-    private void extendWord(Word.WordCandidate candidate, TrieNode node, int row, int col) {
+    private void extendWord(WordCandidate candidate, TrieNode node, int row, int col) {
         if (node.isTerminal() && node.isCorrect() && finishedProperly(row, col, candidate)) {
-            this.generatedWords.add(candidate.word());
+            this.generatedWords.add(candidate.withScore(startingRack));
         } else {
             if (node.isEndOfWord() && finishedProperly(row, col, candidate)) {
-                this.generatedWords.add(candidate.word());
+                this.generatedWords.add(candidate.withScore(startingRack));
             }
             extendWordDownward(candidate, node, row, col);
         }
     }
 
-    private boolean finishedProperly(int row, int col, Word.WordCandidate candidate) {
+    private boolean finishedProperly(int row, int col, WordCandidate candidate) {
         Optional<Field> downNeighbour = board.checkField(row, col + candidate.word().getLength());
         return downNeighbour.isEmpty() || downNeighbour.get().isEmpty();
     }
 
-    private void extendWordDownward(Word.WordCandidate candidate, TrieNode node, int row, int col) {
+    //TODO Tu dac dodawanie
+    private void extendWordDownward(WordCandidate candidate, TrieNode node, int row, int col) {
         Optional<Field> boardField = board.checkField(row, col);
         boardField.ifPresent(field -> {
             if (field.isEmpty()) {
@@ -222,8 +201,9 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
                         .forEach(letter -> {
                     if (node.hasNeighbour(letter)) {
                         Field populatedField = field.withLetter(letter);
-                        Word.WordCandidate extendedCandidate = wordCandidate(
-                                candidate.word().withField(populatedField),
+                        WordCandidate extendedCandidate = wordCandidate(
+                                candidate.word().withFieldAndBonus(populatedField, neighbourBonus(row, col, letter)),
+//                                candidate.word().withField(populatedField),
                                 candidate.rack().withoutLetter(letter)
                         );
                         TrieNode neighbour = node.getNeighbour(letter).get();
@@ -233,7 +213,7 @@ public class VerticalWordGenerator implements Callable<List<Word>>, WordGenerato
                 });
             } else {
                 if (node.hasNeighbour(field.getValue())) {
-                    Word.WordCandidate extendedCandidate = candidate.withField(field);
+                    WordCandidate extendedCandidate = candidate.withField(field);
                     TrieNode neighbour = node.getNeighbour(field.getValue()).get();
 
                     extendWord(extendedCandidate, neighbour, row + 1, col);

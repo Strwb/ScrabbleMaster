@@ -22,12 +22,14 @@ public class Rack {
         return this.withLetters(lettersCopy);
     }
 
-    public boolean addLetter(Character letter) {
+    public Rack addLetter(Character letter) {
         if (letters.size() >= 7) {
-            return false;
+            return this;
         }
-        letters.add(letter);
-        return true;
+//        letters.add(letter);
+        List<Character> lettersCopy = modifiableCopyOf(letters);
+        lettersCopy.add(letter);
+        return this.withLetters(lettersCopy);
     }
 
     public int size() {

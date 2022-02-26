@@ -58,6 +58,10 @@ public class WordUtil {
         return Collections.emptySet();
     }
 
+    public static int wordScore(List<Field> letters) {
+        return calculateWordScore(letters);
+    }
+
     public static int calculateWordScore(List<Field> letters) {
         int multiplier = 1;
         int score = 0;
@@ -72,6 +76,12 @@ public class WordUtil {
             }
             score += letterScore;
         }
-        return score * multiplier;
+        return (score * multiplier);
+    }
+
+    public static String stringForm(List<Field> fields) {
+        StringBuilder sb = new StringBuilder(fields.size());
+        fields.forEach(letter -> sb.append(letter.getValue()));
+        return sb.toString();
     }
 }

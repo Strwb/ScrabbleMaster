@@ -10,7 +10,7 @@ import static board.board.Board.freshScrabbleBoard;
 import static board.board.fields.Field.*;
 import static board.board.fields.FieldBonus.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static shared.TestEntities.createTwoTestWords;
+import static shared.TestEntities.createTwoTestWordsHorizontalScenario;
 
 public class BoardFuncTest {
 
@@ -25,7 +25,7 @@ public class BoardFuncTest {
     @Test
     public void shouldAddWords() {
         Board board = freshScrabbleBoard();
-        List<Word> words = createTwoTestWords(board);
+        List<Word> words = createTwoTestWordsHorizontalScenario(board);
 //        words.forEach(board::addWord);
         board = board.addWords(words);
         assertThat(board.checkField(7, 7).get().getValue()).isEqualTo(Character.valueOf('d'));

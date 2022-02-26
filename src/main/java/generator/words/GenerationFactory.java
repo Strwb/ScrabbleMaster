@@ -3,20 +3,18 @@ package generator.words;
 import board.board.Board;
 import board.board.Board.Anchor;
 import board.words.Word;
+import board.words.Word.WordCandidate;
 import dictionary.ScrabbleDictionary;
+import generator.words.lowLevel.SideGenerator;
 import lombok.experimental.FieldDefaults;
 import player.letters.Rack;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import static generator.words.GeneratorUtil.horizontalGenerator;
-import static generator.words.GeneratorUtil.verticalGenerator;
+import static generator.words.GeneratorUtil.*;
 import static lombok.AccessLevel.PRIVATE;
 import static util.lists.Lists.modifiableEmptyList;
 
@@ -47,22 +45,16 @@ public class GenerationFactory {
     }
 
     private List<Word> findBestMove(Board board, Rack rack, Set<Anchor> anchors) {
-        ExecutorService executorService = Executors.newFixedThreadPool(4);
-        List<Callable<List<Word>>> executorTasks = modifiableEmptyList();
+        List<SideGenerator.Generator> results = modifiableEmptyList();
+        SideGenerator generator = new SideGenerator(board, rack, dictionary);
         anchors.forEach(anchor -> {
-            switch (anchor.type()) {
-                case HORIZONTAL -> executorTasks.add(horizontalGenerator(anchor, board, rack, dictionary));
-                case VERTICAL -> executorTasks.add(verticalGenerator(anchor, board, rack, dictionary));
-            }
+            results.add(generator.generate(anchor));
         });
-        List<Future<List<Word>>> results;
-        try {
-            results = executorService.invokeAll(executorTasks);
 
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Error during horizontal generation");
-        }
+        List<WordCandidate> sorted = GeneratorUtil.getGeneratedWords(results).stream()
+                .sorted(Comparator.comparing(WordCandidate::getScore).reversed())
+                .toList();
 
-        return GeneratorUtil.getGeneratedWords(results);
+        return highScoringWord(sorted);
     }
 }

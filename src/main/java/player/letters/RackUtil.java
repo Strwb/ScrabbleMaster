@@ -20,7 +20,8 @@ public class RackUtil {
         int searchAmount = 7 - target.size();
         for (int i = searchAmount; i < 7; i++) {
             if (bag.size() > 0) {
-                target.getLetters().add(bag.randomLetter());
+
+                target = target.addLetter(bag.randomLetter());
             }
         }
         return target;

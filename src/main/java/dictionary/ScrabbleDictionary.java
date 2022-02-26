@@ -4,16 +4,17 @@ import board.words.Word;
 import io.DictionaryReader;
 import io.Reader;
 import lombok.Builder;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 import static dictionary.Trie.buildTrie;
+import static lombok.AccessLevel.PRIVATE;
 
-@Value
 @Builder
 @Slf4j
+@FieldDefaults(level = PRIVATE, makeFinal = true)
 public class ScrabbleDictionary {
 
     Trie dictionary;
@@ -39,8 +40,16 @@ public class ScrabbleDictionary {
         log.info("Successfully loaded test dictionary!");
     }
 
+    public TrieNode start() {
+        return dictionary.getRoot();
+    }
+
     public TrieNode findWord(Word word) {
-        return dictionary.findWord(word.stringForm());
+        return findWord(word.stringForm());
+    }
+
+    public TrieNode findWord(String word) {
+        return dictionary.findWord(word);
     }
 
     public static ScrabbleDictionary scrabbleDictionary() {

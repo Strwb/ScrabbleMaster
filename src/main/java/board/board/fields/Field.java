@@ -1,5 +1,6 @@
 package board.board.fields;
 
+import dictionary.Score;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -26,11 +27,21 @@ public class Field implements Cloneable {
     }
 
     public void setPossibilities(Set<Character> possibilities) {
-        this.withPossibilities(possibilities);
+        this.withPossibilities(possibilities); //FIXME
     }
 
     public Field withLetter(Character letter) {
         return this.withValue(letter);
+    }
+
+    public boolean isPresent() {
+        return !empty;
+    }
+
+    public int letterValue() {
+        return empty ?
+                0 :
+                Score.checkLetterValue(value);
     }
 
     @SneakyThrows

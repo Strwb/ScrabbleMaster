@@ -4,18 +4,15 @@ import board.board.Board;
 import board.board.Board.Anchor;
 import board.board.fields.Field;
 import board.words.Word;
-import dictionary.ScrabbleDictionary;
-import player.letters.Rack;
-import util.lists.Lists;
+import board.words.Word.WordCandidate;
+import generator.words.lowLevel.SideGenerator;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static board.board.fields.PlacementType.HORIZONTAL;
 import static board.board.fields.PlacementType.VERTICAL;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static util.lists.Lists.modifiableEmptyList;
 import static util.logic.LogicalExpressions.not;
@@ -36,28 +33,31 @@ public class GeneratorUtil {
 
     public static Optional<Word> getMaxWord(List<Word> results) {
         return results.stream()
-                .max(Comparator.comparing(Word::getScore));
+                .max(Comparator.comparing(Word::getWordScore));
     }
 
-    public static List<Word> getGeneratedWords(List<Future<List<Word>>> futures) {
-        return extractWordsFromFutures(futures);
+    public static List<WordCandidate> getGeneratedWords(List<SideGenerator.Generator> results) {
+        return extractWords(results);
     }
 
-    private static List<Word> extractWordsFromFutures(List<Future<List<Word>>> futures) {
-        List<List<Word>> words = Lists.modifiableEmptyList();
-        futures.forEach(future -> {
-            try {
-                words.add(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
-        return words.stream()
+    private static List<WordCandidate> extractWords(List<SideGenerator.Generator> results) {
+        return results.stream()
+                .map(SideGenerator.Generator::generateWords)
                 .flatMap(Collection::stream)
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
-    static Predicate<Word> overrideAttempt(Board board) {
+    static List<Word> highScoringWord(List<WordCandidate> candidates) {
+        List<Word> result = modifiableEmptyList();
+        int i = 0;
+        while ((i < candidates.size()) && (i < 20)) {
+            result.add(candidates.get(i).extractWord());
+           i++;
+        }
+        return result;
+    }
+
+    public static Predicate<Word> notOverride(Board board) {
         return word -> {
             int row = word.getVectorNo();
             int col = word.getStart();
@@ -73,6 +73,7 @@ public class GeneratorUtil {
 
                 if (not(boardField.isEmpty())) {
 
+                    // do we try to put different letter at field that is already taken?
                     boolean overrideAttempt = boardField.getValue() != letter.getValue();
 
                     if (overrideAttempt) {
@@ -84,27 +85,5 @@ public class GeneratorUtil {
             }
             return true;
         };
-    }
-
-    static HorizontalWordGenerator horizontalGenerator(Anchor anchor, Board board, Rack rack, ScrabbleDictionary dictionary) {
-        return HorizontalWordGenerator.builder()
-                        .dictionary(dictionary)
-                        .anchorRow(anchor.row())
-                        .anchorCol(anchor.col())
-                        .board(board)
-                        .startingRack(rack)
-                        .generatedWords(modifiableEmptyList())
-                        .build();
-    }
-
-    static VerticalWordGenerator verticalGenerator(Anchor anchor, Board board, Rack rack, ScrabbleDictionary dictionary) {
-        return VerticalWordGenerator.builder()
-                .dictionary(dictionary)
-                .anchorRow(anchor.row())
-                .anchorCol(anchor.col())
-                .board(board)
-                .startingRack(rack)
-                .generatedWords(modifiableEmptyList())
-                .build();
     }
 }
