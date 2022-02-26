@@ -45,7 +45,6 @@ public class Trie { //TODO test this shit
         } else if (letterIndex >= word.length()) {
             return node;
         } else {
-            System.out.println("ERROR while searching for word: " + word);
             return errorNode();
         }
     }

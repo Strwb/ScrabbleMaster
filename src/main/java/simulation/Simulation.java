@@ -6,30 +6,26 @@ import dictionary.ScrabbleDictionary;
 import generator.possibilities.PossibilitiesFactory;
 import generator.words.GenerationFactory;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import player.letters.LetterBag;
 import player.letters.Rack;
-import player.letters.RackUtil;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toMap;
 import static lombok.AccessLevel.PRIVATE;
-import static util.lists.Lists.modifiableEmptyList;
 
 @Value
 @AllArgsConstructor
 @FieldDefaults(level = PRIVATE)
 public class Simulation {
 
-    // No multithreading - 1min 47s
-    // Multithreading - 1min 33s
+    // No multithreading - over 9s
+    // Multithreading - 4.4s
 
     GenerationFactory generationFactory;
     PossibilitiesFactory possibilitiesFactory;
@@ -46,167 +42,75 @@ public class Simulation {
         List<Word> wordCandidates = playerWordCandidates(board, playerRack);
 
 
-        Map<Word, Double> simulationResults = performSimulation(wordCandidates, board, playerRack, bag);
-        Optional<Map.Entry<Word, Double>> bestWord = simulationResults.entrySet().stream()
-                .max(Map.Entry.comparingByValue());
+        List<SimulationResult> simulationResults = performSimulation(wordCandidates, board, playerRack, bag);
 
-        return bestWord.map(Map.Entry::getKey);
+        Optional<SimulationResult> bestResult = simulationResults.stream()
+                .max(Comparator.comparing(SimulationResult::score));
+
+        return bestResult.map(SimulationResult::word);
     }
 
-    Map<Word, Double> performSimulation(List<Word> words, Board board, Rack playerRack, LetterBag bag) {
-        Map<Word, List<SimulationRun>> runs = words.stream()
+    List<SimulationResult> performSimulation(List<Word> words, Board board, Rack playerRack, LetterBag bag) {
+        List<SimulationRunner> runs = words.stream()
                 .map(word -> perWordSimulation(word, board, playerRack, bag))
-                .flatMap(Collection::stream)
-                .collect(Collectors.groupingBy(SimulationRun::getOriginal));
+                .toList();
 
         return execute(runs);
     }
 
-    Map<Word, Double> execute(Map<Word, List<SimulationRun>> runs) {
+    @SneakyThrows
+    List<SimulationResult> execute(List<SimulationRunner> runs) {
         ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-        return runs.entrySet().stream()
-                .map(entry -> new SimpleEntry<Word, Double>(
-                        entry.getKey(),
-                        executeBatch(entry.getValue(), executorService)))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        List<SimulationResult> results = executeRuns(runs, executorService);
 
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+        return results;
     }
 
-    Double executeBatch (List<SimulationRun> batch, ExecutorService executorService) {
-        List<Future<Integer>> results;
+    List<SimulationResult> executeRuns(List<SimulationRunner> runs, ExecutorService executorService) {
+        List<Future<SimulationResult>> results;
         try {
-            results = executorService.invokeAll(batch);
+            results = executorService.invokeAll(runs);
         } catch (InterruptedException e) {
-            throw new RuntimeException("Error during horizontal generation");
+            throw new RuntimeException("Error during generation");
         }
-        OptionalDouble result = extractResult(results);
 
-        return result.isPresent() ?
-                result.getAsDouble() :
-                0;
+        return results.stream()
+                .map(this::extractResults)
+                .filter(Optional::isPresent)
+                .flatMap(Optional::stream)
+                .toList();
     }
 
-    OptionalDouble extractResult(List<Future<Integer>> results) {
-        List<Integer> runResults = modifiableEmptyList();
-        results.forEach(future -> {
-            try {
-                runResults.add(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
-        return runResults.stream()
-                .mapToDouble(result -> result)
-                .average();
+    Optional<SimulationResult> extractResults(Future<SimulationResult> future) {
+        SimulationResult result = null;
+        try {
+            result = future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return Optional.ofNullable(result);
     }
 
-    //TODO:
-    // - Premia 50 punktow za uzycie calej tacki
-    // - Sprawdzic inne zasady ktore mozna uzyc
-    // - Blank letter
-    // - Score existing words
-
-    List<SimulationRun> perWordSimulation(Word word, Board board, Rack playerRack, LetterBag bag) {
-        List<SimulationRun> runs = modifiableEmptyList();
-        for (int i = 0; i < 8; i++) {
-            runs.add(
-                    SimulationRun.builder()
-                            .bag(bag)
-                            .board(board)
-                            .original(word)
-                            .playerRack(playerRack)
-                            .generationFactory(generationFactory)
-                            .possibilitiesFactory(possibilitiesFactory)
-                            .build()
-            );
-        }
-        return runs;
+    SimulationRunner perWordSimulation(Word word, Board board, Rack playerRack, LetterBag bag) {
+        return SimulationRunner.builder()
+                .bag(bag)
+                .board(board)
+                .original(word)
+                .playerRack(playerRack)
+                .generationFactory(generationFactory)
+                .possibilitiesFactory(possibilitiesFactory)
+                .iterations(50)
+                .build();
     }
 
     List<Word> playerWordCandidates(Board board, Rack playerRack) {
         return generationFactory.findPossibleMoves(board, playerRack, board.getAnchors());
     }
 
-
-    Optional<Word> opponentBestWord(Board board, Rack opponentRack) {
-        return generationFactory.findNextMove(board, opponentRack, board.getAnchors());
-    }
-
-    @Builder
-    private static class SimulationRun implements Callable<Integer> {
-
-        Word original;
-        Rack playerRack;
-        Board board;
-        LetterBag bag;
-        GenerationFactory generationFactory;
-        PossibilitiesFactory possibilitiesFactory;
-
-        @Override
-        @SneakyThrows
-        public Integer call() {
-
-            int opponentScore;
-            int simulationScore;
-
-            board = board.addWords(original);
-            updatePossibilities(board);
-
-            playerRack = updatePlayerRack();
-            Rack opponentRack = randomizeOpponentRack();
-            Optional<Word> opponentWord = findOpponentMove(opponentRack);
-
-            opponentScore = opponentWord.map(Word::getWordScore).orElse(0);
-
-            if (opponentWord.isPresent()) {
-                board = placeWord(opponentWord.get());
-                updatePossibilities(board);
-            }
-
-            Optional<Word> simulationWord = findFinalPlayerWord(playerRack);
-
-            simulationScore = simulationWord.map(Word::getWordScore).orElse(0);
-
-            if (simulationWord.isPresent()) {
-                board = placeWord(simulationWord.get());
-                updatePossibilities(board);
-            }
-
-//            System.out.println(simulationScore(original.getWordScore(), opponentScore, simulationScore));
-            return simulationScore(original.getWordScore(), opponentScore, simulationScore);
-        }
-
-        public Word getOriginal() {
-            return original;
-        }
-
-        private Rack updatePlayerRack() {
-            return RackUtil.drawLetters(bag, playerRack);
-        }
-
-        private Rack randomizeOpponentRack() {
-            return RackUtil.randomRack(bag);
-        }
-
-        private Optional<Word> findOpponentMove(Rack opponentRack) {
-            return generationFactory.findNextMove(board, opponentRack, board.getAnchors());
-        }
-
-        private Board placeWord(Word word) {
-            return board.addWords(word);
-        }
-
-        private void updatePossibilities(Board board) {
-            board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
-        }
-
-        private Optional<Word> findFinalPlayerWord(Rack playerRack) {
-            return generationFactory.findNextMove(board, playerRack, board.getAnchors());
-        }
-
-        private int simulationScore(int original, int opponent, int simulated) {
-            return original - opponent + simulated;
-        }
-    }
+    record SimulationResult(Word word, Double score){}
 }

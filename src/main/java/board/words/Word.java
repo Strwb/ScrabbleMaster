@@ -8,6 +8,7 @@ import lombok.Value;
 import lombok.With;
 import player.letters.Rack;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static util.lists.Lists.modifiableCopyOf;
@@ -15,7 +16,7 @@ import static util.lists.Lists.modifiableCopyOf;
 @Value
 @Builder
 @With
-public class Word {
+public class Word implements Serializable {
 
     PlacementType type;
     int vectorNo;

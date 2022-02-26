@@ -1,6 +1,8 @@
 package board.board.fields;
 
-public enum PlacementType {
+import java.io.Serializable;
+
+public enum PlacementType implements Serializable {
 
     HORIZONTAL,
     VERTICAL

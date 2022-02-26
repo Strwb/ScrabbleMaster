@@ -8,6 +8,7 @@ import generator.possibilities.PossibilitiesFactory;
 import lombok.Builder;
 import lombok.Value;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -18,7 +19,7 @@ import static java.util.stream.Collectors.toSet;
 
 @Value
 @Builder
-public class Board {
+public class Board implements Serializable {
 
     Field[][] board;
     List<Word> words;

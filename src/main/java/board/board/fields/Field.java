@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.With;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import static board.board.fields.FieldBonus.*;
@@ -15,7 +16,7 @@ import static board.words.WordUtil.wholeAlphabet;
 @Builder
 @Value
 @With
-public class Field implements Cloneable {
+public class Field implements Serializable {
 
     Character value;
     FieldBonus bonus;

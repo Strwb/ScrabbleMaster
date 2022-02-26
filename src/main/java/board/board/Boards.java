@@ -2,8 +2,7 @@ package board.board;
 
 import board.words.Word;
 import lombok.experimental.UtilityClass;
-import util.Arrays.Arrays;
-import util.lists.Lists;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.util.List;
 
@@ -11,10 +10,12 @@ import java.util.List;
 public class Boards {
 
     Board addWord(List<Word> words, Board board) {
-        Board copy = Board.builder()
-                .board(Arrays.deepCopyOf(board.getBoard()))
-                .words(Lists.modifiableCopyOf(board.getWords()))
-                .build();
+//        Board copy = Board.builder()
+//                .board(Arrays.deepCopyOf(board.getBoard()))
+//                .words(Lists.modifiableCopyOf(board.getWords()))
+//                .build();
+
+        Board copy = SerializationUtils.clone(board);
 
         words.forEach(copy::attemptAddition);
         return copy;

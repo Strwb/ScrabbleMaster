@@ -186,7 +186,6 @@ public class HorizontalWordGenerator implements WordGenerator {
         return rightNeighbour.isEmpty() || rightNeighbour.get().isEmpty();
     }
 
-    //TODO -> Tu dac dodawanie
     private void extendWordRightward(WordCandidate candidate, TrieNode node, int row, int col) {
         Optional<Field> boardField = board.checkField(row, col);
         boardField.ifPresent(field -> {
