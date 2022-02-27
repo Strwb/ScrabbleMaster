@@ -18,9 +18,8 @@ public class RackUtil {
 
     private Rack randomizeRack(LetterBag bag, Rack target) {
         int searchAmount = 7 - target.size();
-        for (int i = searchAmount; i < 7; i++) {
+        for (int i = searchAmount; i > 0; i--) {
             if (bag.size() > 0) {
-
                 target = target.addLetter(bag.randomLetter());
             }
         }

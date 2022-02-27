@@ -3,12 +3,14 @@ package player.letters;
 import board.board.Board;
 import board.board.fields.Field;
 import board.words.Word;
+import org.apache.commons.lang3.SerializationUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
-public record LetterBag(Map<Character, Integer> quantities) {
+public record LetterBag(Map<Character, Integer> quantities) implements Serializable {
 
     public LetterBag deleteRack(Rack rack) {
         LetterBag copy = deepCopy(this);
@@ -41,6 +43,12 @@ public record LetterBag(Map<Character, Integer> quantities) {
     public LetterBag deleteUsedLetters(Rack rack) {
         LetterBag copy = deepCopy(this);
         copy.deleteRack(rack);
+        return copy;
+    }
+
+    public LetterBag deleteWord(Word word) {
+        LetterBag copy = deepCopy(this);
+        word.getLetters().forEach(field -> copy.decreaseQuantity(field.getValue()));
         return copy;
     }
 
@@ -85,8 +93,11 @@ public record LetterBag(Map<Character, Integer> quantities) {
     }
 
     private static LetterBag deepCopy(LetterBag bag) {
-        Map<Character, Integer> quantities = new HashMap<>(bag.quantities());
-        return new LetterBag(quantities);
+        return SerializationUtils.clone(bag);
+    }
+
+    public LetterBag clone() {
+        return SerializationUtils.clone(this);
     }
 
     private static Map<Character, Integer> fillInitialQuantities(Map<Character, Integer> quantities) {

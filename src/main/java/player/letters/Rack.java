@@ -1,9 +1,12 @@
 package player.letters;
 
+import board.words.Word;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import org.apache.commons.lang3.SerializationUtils;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static util.lists.Lists.modifiableCopyOf;
@@ -12,7 +15,7 @@ import static util.lists.Lists.modifiableEmptyList;
 @Value
 @Builder
 @With
-public class Rack {
+public class Rack implements Serializable {
 
     List<Character> letters;
 
@@ -22,11 +25,16 @@ public class Rack {
         return this.withLetters(lettersCopy);
     }
 
+    public Rack withoutLetters(Word word) {
+        Rack clone = this.clone();
+        word.getLetters().forEach(letter -> clone.getLetters().remove(letter.getValue()));
+        return clone;
+    }
+
     public Rack addLetter(Character letter) {
         if (letters.size() >= 7) {
             return this;
         }
-//        letters.add(letter);
         List<Character> lettersCopy = modifiableCopyOf(letters);
         lettersCopy.add(letter);
         return this.withLetters(lettersCopy);
@@ -45,9 +53,7 @@ public class Rack {
         }
     }
 
-        //TODO
-        // 1. Get initial amounts of each letter in the bag
-        // 2. Subtract letters already on the board
-        // 3. Generate 7 letters, for each subtract in from available quantities
-        //      if we cant use this letter, then rerandomize
+    public Rack clone() {
+        return SerializationUtils.clone(this);
+    }
 }

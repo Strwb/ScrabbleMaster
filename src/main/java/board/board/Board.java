@@ -7,6 +7,7 @@ import board.words.Word;
 import generator.possibilities.PossibilitiesFactory;
 import lombok.Builder;
 import lombok.Value;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -42,6 +43,10 @@ public class Board implements Serializable {
 
     public Board addWords(Word word) {
         return Boards.addWord(singletonList(word), this);
+    }
+
+    public Board clone() {
+        return SerializationUtils.clone(this);
     }
 
     void attemptAddition(Word word) {

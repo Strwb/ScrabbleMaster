@@ -29,6 +29,8 @@ public class Simulation {
 
     GenerationFactory generationFactory;
     PossibilitiesFactory possibilitiesFactory;
+    static int THREAD_NUM = 4;
+    static int ITERATIONS_NUM = 20;
 
     public Simulation(ScrabbleDictionary dictionary) {
         dictionary.loadDictionary();
@@ -38,6 +40,10 @@ public class Simulation {
 
     public Optional<Word> simulate(Board board, Rack playerRack) {
         LetterBag bag = LetterBag.initialBag();
+        return simulate(board, playerRack, bag);
+    }
+
+    public Optional<Word> simulate(Board board, Rack playerRack, LetterBag bag) {
         bag = bag.deleteUsedLetters(board, playerRack);
         List<Word> wordCandidates = playerWordCandidates(board, playerRack);
 
@@ -60,7 +66,7 @@ public class Simulation {
 
     @SneakyThrows
     List<SimulationResult> execute(List<SimulationRunner> runs) {
-        ExecutorService executorService = Executors.newFixedThreadPool(4);
+        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
         List<SimulationResult> results = executeRuns(runs, executorService);
 
@@ -98,13 +104,13 @@ public class Simulation {
 
     SimulationRunner perWordSimulation(Word word, Board board, Rack playerRack, LetterBag bag) {
         return SimulationRunner.builder()
-                .bag(bag)
-                .board(board)
+                .bag(bag.clone())
+                .board(board.clone())
                 .original(word)
-                .playerRack(playerRack)
+                .playerRack(playerRack.clone())
                 .generationFactory(generationFactory)
                 .possibilitiesFactory(possibilitiesFactory)
-                .iterations(50)
+                .iterations(ITERATIONS_NUM)
                 .build();
     }
 

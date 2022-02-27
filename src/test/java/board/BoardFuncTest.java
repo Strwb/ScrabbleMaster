@@ -29,13 +29,16 @@ public class BoardFuncTest {
 //        words.forEach(board::addWord);
         board = board.addWords(words);
         assertThat(board.checkField(7, 7).get().getValue()).isEqualTo(Character.valueOf('d'));
-        assertThat(board.checkField(7, 8).get().getValue()).isEqualTo(Character.valueOf('u'));
-        assertThat(board.checkField(7, 9).get().getValue()).isEqualTo(Character.valueOf('p'));
-        assertThat(board.checkField(7, 10).get().getValue()).isEqualTo(Character.valueOf('a'));
+        assertThat(board.checkField(7, 8).get().getValue()).isEqualTo(Character.valueOf('o'));
+        assertThat(board.checkField(7, 9).get().getValue()).isEqualTo(Character.valueOf('m'));
+        assertThat(board.checkField(7, 10).get().getValue()).isEqualTo(Character.valueOf('k'));
+        assertThat(board.checkField(7, 11).get().getValue()).isEqualTo(Character.valueOf('i'));
 
-        assertThat(board.checkField(8, 8).get().getValue()).isEqualTo(Character.valueOf('r'));
-        assertThat(board.checkField(9, 8).get().getValue()).isEqualTo(Character.valueOf('n'));
-        assertThat(board.checkField(10, 8).get().getValue()).isEqualTo(Character.valueOf('a'));
+        assertThat(board.checkField(6, 8).get().getValue()).isEqualTo(Character.valueOf('k'));
+        assertThat(board.checkField(7, 8).get().getValue()).isEqualTo(Character.valueOf('o'));
+        assertThat(board.checkField(8, 8).get().getValue()).isEqualTo(Character.valueOf('t'));
+        assertThat(board.checkField(9, 8).get().getValue()).isEqualTo(Character.valueOf('e'));
+        assertThat(board.checkField(10, 8).get().getValue()).isEqualTo(Character.valueOf('k'));
 
         assertThat(board.checkField(8, 8).get().getBonus()).isEqualTo(NONE);
     }
