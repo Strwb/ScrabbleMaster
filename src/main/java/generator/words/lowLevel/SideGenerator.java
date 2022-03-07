@@ -33,11 +33,11 @@ public class SideGenerator {
     }
 
     private Generator vertical(Anchor anchor) {
-        return new Generator(verticalGenerator(anchor), board);
+        return new Generator(verticalGenerator(anchor), board, dictionary);
     }
 
     private Generator horizontal(Anchor anchor) {
-        return new Generator(horizontalGenerator(anchor), board);
+        return new Generator(horizontalGenerator(anchor), board, dictionary);
     }
 
     private VerticalWordGenerator verticalGenerator(Anchor anchor) {
@@ -62,7 +62,7 @@ public class SideGenerator {
                 .build();
     }
 
-    public record Generator(WordGenerator generator, Board board) {
+    public record Generator(WordGenerator generator, Board board, ScrabbleDictionary dictionary) {
 
         public List<WordCandidate> generateWords() {
             generator.generate();
@@ -73,6 +73,7 @@ public class SideGenerator {
                                             .noneMatch(Field::isEmpty))
                     )
                     .filter(candidate -> notOverride(board).test(candidate.word()))
+                    .filter(candidate -> SideGeneratorUtil.isWordValid(candidate, board, dictionary))
                     .collect(toList());
         }
     }

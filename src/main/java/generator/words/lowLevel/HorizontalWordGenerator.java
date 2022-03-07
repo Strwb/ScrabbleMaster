@@ -1,6 +1,7 @@
 package generator.words.lowLevel;
 
 import board.board.Board;
+import board.board.fields.BoardTraverser;
 import board.board.fields.Field;
 import board.words.Word;
 import board.words.Word.WordCandidate;
@@ -89,7 +90,7 @@ public class HorizontalWordGenerator implements WordGenerator {
 
     private int calculateLeftSpace() {
         return min(
-                BoardTraverser.goAllTheWayLeft(board, anchorRow, anchorCol),
+                BoardTraverser.getEmptyLeftDistance(board, anchorRow, anchorCol),
                 (startingRack.size() - 1));
     }
 

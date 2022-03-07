@@ -2,13 +2,13 @@ package generator.possibilities;
 
 import board.board.Board;
 import board.board.Coordinate;
+import board.board.fields.BoardTraverser;
 import board.board.fields.Field;
 import board.words.WordUtil;
 import dictionary.ScrabbleDictionary;
 import lombok.Builder;
 import lombok.Value;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,25 +44,25 @@ public class LeftPossibilities implements PossibilitiesFinder{
     }
 
     private Set<Character> calculatePossibilities() {
-        List<Field> fields = goAllTheWayLeft();
+        List<Field> fields = BoardTraverser.goAllTheWayLeft(coordinate, board);
         reverse(fields);
         return dictionary.findWord(WordUtil.stringForm(fields))
                 .getNeighbours()
                 .keySet();
     }
-
-    private List<Field> goAllTheWayLeft() {
-        List<Field> fields = new ArrayList<>();
-        int row = coordinate.row();
-        int col = coordinate.col() - 1;
-
-        Optional<Field> field = board.checkField(row, col);
-
-        while (not(field.isEmpty()) && not(field.get().isEmpty())) {
-            fields.add(field.get());
-            col--;
-            field = board.checkField(row, col);
-        }
-        return fields;
-    }
+//
+//    private List<Field> goAllTheWayLeft() {
+//        List<Field> fields = new ArrayList<>();
+//        int row = coordinate.row();
+//        int col = coordinate.col() - 1;
+//
+//        Optional<Field> field = board.checkField(row, col);
+//
+//        while (not(field.isEmpty()) && not(field.get().isEmpty())) {
+//            fields.add(field.get());
+//            col--;
+//            field = board.checkField(row, col);
+//        }
+//        return fields;
+//    }
 }

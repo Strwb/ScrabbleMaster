@@ -27,10 +27,11 @@ public class PossibilitiesFactory {
     }
 
     private static StampedAnchor extractPossibilities(PossibilitiesGenerator generator) {
-        return new StampedAnchor(
+         var stamped = new StampedAnchor(
                 generator.getCoordinate().row(),
                 generator.getCoordinate().col(),
                 generator.findPossibilities());
+         return stamped;
     }
 
     public record StampedAnchor(int row, int col, Set<Character> possibilities){};

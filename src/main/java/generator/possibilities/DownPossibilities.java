@@ -2,12 +2,12 @@ package generator.possibilities;
 
 import board.board.Board;
 import board.board.Coordinate;
+import board.board.fields.BoardTraverser;
 import board.board.fields.Field;
 import dictionary.ScrabbleDictionary;
 import lombok.Builder;
 import lombok.Value;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class DownPossibilities implements PossibilitiesFinder{
     }
 
     private Set<Character> calculatePossibilities() {
-        List<Field> fields = goAllTheWayDown();
+        List<Field> fields = BoardTraverser.goAllTheWayDown(coordinate, board);
         Set<Character> wordStarts = wholeAlphabet();
         return wordStarts.stream()
                 .filter(start -> isValidBeginning(fields).test(start))
@@ -59,19 +59,19 @@ public class DownPossibilities implements PossibilitiesFinder{
             return dictionary.findWord(word).isEndOfWord();
         };
     }
-
-    private List<Field> goAllTheWayDown() {
-        List<Field> fields = new ArrayList<>();
-        int row = coordinate.row() + 1;
-        int col = coordinate.col();
-
-        Optional<Field> field = board.checkField(row, col);
-
-        while (not(field.isEmpty()) && not(field.get().isEmpty())) {
-            fields.add(field.get());
-            row++;
-            field = board.checkField(row, col);
-        }
-        return fields;
-    }
+//
+//    private List<Field> goAllTheWayDown() {
+//        List<Field> fields = new ArrayList<>();
+//        int row = coordinate.row() + 1;
+//        int col = coordinate.col();
+//
+//        Optional<Field> field = board.checkField(row, col);
+//
+//        while (not(field.isEmpty()) && not(field.get().isEmpty())) {
+//            fields.add(field.get());
+//            row++;
+//            field = board.checkField(row, col);
+//        }
+//        return fields;
+//    }
 }

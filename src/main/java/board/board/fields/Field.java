@@ -35,7 +35,7 @@ public class Field implements Serializable {
         return this.withValue(letter);
     }
 
-    public boolean isPresent() {
+    public boolean isOccupied() {
         return !empty;
     }
 

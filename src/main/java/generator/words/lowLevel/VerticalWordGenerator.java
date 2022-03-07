@@ -1,6 +1,7 @@
 package generator.words.lowLevel;
 
 import board.board.Board;
+import board.board.fields.BoardTraverser;
 import board.board.fields.Field;
 import board.words.Word;
 import board.words.Word.WordCandidate;
@@ -89,7 +90,7 @@ public class VerticalWordGenerator implements WordGenerator {
 
     private int calculateUpperSpace() {
         return min(
-                BoardTraverser.goAllTheWayUp(board, anchorRow, anchorCol),
+                BoardTraverser.getEmptyAboveDistance(board, anchorRow, anchorCol),
                 (startingRack.size() - 1));
     }
 
@@ -110,7 +111,6 @@ public class VerticalWordGenerator implements WordGenerator {
         return BoardBonusCalculator.horizontalNeighbourBonus(dictionary, board, letter, row, col);
     }
 
-    //TODO Tu dac dodawanie
     private void searchUpperCandidates(
             TrieNode node,
             Word word,
@@ -191,7 +191,6 @@ public class VerticalWordGenerator implements WordGenerator {
         return downNeighbour.isEmpty() || downNeighbour.get().isEmpty();
     }
 
-    //TODO Tu dac dodawanie
     private void extendWordDownward(WordCandidate candidate, TrieNode node, int row, int col) {
         Optional<Field> boardField = board.checkField(row, col);
         boardField.ifPresent(field -> {

@@ -42,11 +42,10 @@ public class LongTermSimulation {
         List<Word> words = createTwoTestWordsHorizontalScenario(board);
         LetterBag bag = LetterBag.initialBag();
         board = board.addWords(words);
-        var anchors = board.getAnchors();
         Rack playerRack = RackUtil.randomRack(bag);
         Rack opponentRack = RackUtil.randomRack(bag);
 
-        possibilitiesFactory.generatePossibilities(anchors, board);
+        board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
 
         System.out.println("START BOARD");
         board.printBoard();
@@ -54,29 +53,29 @@ public class LongTermSimulation {
         List<Word> generatedWords = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
-            Optional<Word> playerWord = simulation.simulate(board, playerRack);
+            Optional<Word> playerWord = simulation.simulate(board.clone(), playerRack);
             if (playerWord.isPresent()) {
                 board = board.addWords(playerWord.get());
+                board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
+                System.out.println("PLAYER MOVE");
+                board.printBoard();
                 playerRack = playerRack.withoutLetters(playerWord.get());
                 playerRack = RackUtil.drawLetters(bag, playerRack);
                 generatedWords.add(playerWord.get());
-                System.out.println("PLAYER MOVE");
-                board.printBoard();
             }
 
-            board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
 
-            Optional<Word> opponentWord = simulation.simulate(board, opponentRack);
+            Optional<Word> opponentWord = simulation.simulate(board.clone(), opponentRack);
             if (opponentWord.isPresent()) {
                 board = board.addWords(opponentWord.get());
+                board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
+                System.out.println("OPPONENT MOVE");
+                board.printBoard();
                 opponentRack = opponentRack.withoutLetters(opponentWord.get());
                 opponentRack = RackUtil.drawLetters(bag, opponentRack);
                 generatedWords.add(opponentWord.get());
-                System.out.println("OPPONENT MOVE");
-                board.printBoard();
             }
 
-            board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
         }
 
 

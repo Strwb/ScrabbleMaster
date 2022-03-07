@@ -82,7 +82,7 @@ public class Board implements Serializable {
             }
             sb.append("\n");
         }
-        System.out.println(sb.toString());
+        System.out.println(sb);
     }
 
     public static Board freshScrabbleBoard() {

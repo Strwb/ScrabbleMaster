@@ -1,6 +1,7 @@
 package generator.words.lowLevel;
 
 import board.board.Board;
+import board.board.fields.BoardTraverser;
 import board.board.fields.Field;
 import dictionary.ScrabbleDictionary;
 import dictionary.TrieNode;
@@ -35,13 +36,13 @@ public class BoardBonusCalculator {
 
     private int verticalStart(Board board, int row, int col) {
         return hasNeighbourAbove(board, row, col) ?
-                BoardTraverser.goAllTheWayUp(board, row, col) :
+                BoardTraverser.getOccupiedAboveDistance(board, row, col) :
                 row;
     }
 
     private int horizontalStart(Board board, int row, int col) {
         return hasLeftNeighbour(board, row, col) ?
-                BoardTraverser.goAllTheWayLeft(board, row, col) :
+                BoardTraverser.getOccupiedLeftDistance(board, row, col) :
                 col;
     }
 
@@ -57,7 +58,7 @@ public class BoardBonusCalculator {
         int sum = 0;
         TrieNode node = dictionary.start();
         Optional<Field> field = board.checkField(row, col);
-        while (field.isPresent() && field.get().isPresent() && node.hasNeighbour(field.get().getValue())) {
+        while (field.isPresent() && field.get().isOccupied() && node.hasNeighbour(field.get().getValue())) {
             sum += field.get().letterValue();
             node = node.getNeighbours().get(field.get().getValue());
             if (row != targetRow) {
@@ -76,7 +77,7 @@ public class BoardBonusCalculator {
         int sum = 0;
         TrieNode node = dictionary.start();
         Optional<Field> field = board.checkField(row, col);
-        while (field.isPresent() && field.get().isPresent() && node.hasNeighbour(field.get().getValue())) {
+        while (field.isPresent() && field.get().isOccupied() && node.hasNeighbour(field.get().getValue())) {
             sum += field.get().letterValue();
             node = node.getNeighbours().get(field.get().getValue());
             if (col != targetCol) {

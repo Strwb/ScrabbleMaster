@@ -15,7 +15,6 @@ import static board.board.fields.PlacementType.HORIZONTAL;
 import static board.board.fields.PlacementType.VERTICAL;
 import static java.util.stream.Collectors.toSet;
 import static util.lists.Lists.modifiableEmptyList;
-import static util.logic.LogicalExpressions.not;
 
 public class GeneratorUtil {
 
@@ -58,32 +57,65 @@ public class GeneratorUtil {
     }
 
     public static Predicate<Word> notOverride(Board board) {
-        return word -> {
-            int row = word.getVectorNo();
-            int col = word.getStart();
-            for (int i = 0; i < word.getLetters().size(); i++) {
-                Field letter = word.getLetters().get(i);
-                Optional<Field> boardLetter = board.checkField(row, col);
+        return word -> switch (word.getType()) {
+            case HORIZONTAL -> notHorizontalOverride(word, board);
+            case VERTICAL -> notVerticalOverride(word, board);
+        };
+    }
 
-                if (boardLetter.isEmpty()) {
+    public static boolean notVerticalOverride(Word word, Board board) {
+        int row = word.getStart();
+        int col = word.getVectorNo();
+        for (int i = 0; i < word.getLetters().size(); i++) {
+            Field letter = word.getLetters().get(i);
+            Optional<Field> boardLetter = board.checkField(row, col);
+
+            if (boardLetter.isEmpty()) {
+                return false;
+            }
+
+            Field boardField = boardLetter.get();
+
+            if (boardField.isOccupied()) {
+
+                // do we try to put different letter at field that is already taken?
+                boolean overrideAttempt = boardField.getValue() != letter.getValue();
+
+                if (overrideAttempt) {
                     return false;
                 }
-
-                Field boardField = boardLetter.get();
-
-                if (not(boardField.isEmpty())) {
-
-                    // do we try to put different letter at field that is already taken?
-                    boolean overrideAttempt = boardField.getValue() != letter.getValue();
-
-                    if (overrideAttempt) {
-                        return false;
-                    }
-                }
-
-                col++;
             }
-            return true;
-        };
+
+            row++;
+        }
+        return true;
+    }
+
+    public static boolean notHorizontalOverride(Word word, Board board) {
+        int row = word.getVectorNo();
+        int col = word.getStart();
+        for (int i = 0; i < word.getLetters().size(); i++) {
+            Field letter = word.getLetters().get(i);
+            Optional<Field> boardLetter = board.checkField(row, col);
+
+            if (boardLetter.isEmpty()) {
+                return false;
+            }
+
+            Field boardField = boardLetter.get();
+
+            if (boardField.isOccupied()) {
+
+                // do we try to put different letter at field that is already taken?
+                boolean overrideAttempt = boardField.getValue() != letter.getValue();
+
+                if (overrideAttempt) {
+                    return false;
+                }
+            }
+
+            col++;
+        }
+        return true;
     }
 }
