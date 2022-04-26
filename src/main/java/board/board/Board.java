@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static board.board.fields.Field.assignField;
+import static board.board.fields.PlacementType.HORIZONTAL;
+import static board.board.fields.PlacementType.VERTICAL;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 
@@ -68,6 +70,10 @@ public class Board implements Serializable {
     }
 
     public Set<Anchor> getAnchors() {
+        if (words.isEmpty()) {
+//            return Set.of(new Anchor(7, 7, HORIZONTAL), new Anchor(7, 7, VERTICAL));
+            return Set.of(new Anchor(7, 7, VERTICAL), new Anchor(7, 7, HORIZONTAL));
+        }
         return BoardUtil.getAnchors(words).stream()
                 .filter(BoardUtil.isAnchorViable(this))
                 .collect(toSet());

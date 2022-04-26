@@ -34,10 +34,12 @@ public class HorizontalWordGenerator implements WordGenerator {
     ScrabbleDictionary dictionary;
     List<WordCandidate> generatedWords;
 
+    @Override
     public List<WordCandidate> generatedWords() {
         return this.generatedWords;
     }
 
+    @Override
     public void generate() {
         extendRight(generateLeft());
     }
@@ -124,7 +126,7 @@ public class HorizontalWordGenerator implements WordGenerator {
 
         Optional<Field> field = board.checkField(row, col);
         field.ifPresent(fld -> {
-                    if (fld.isEmpty()) {
+                    if (fld.isEmpty() && startCheckPassed(anchorRow, anchorCol, space)) {
                         rack.getLetters().stream()
                                 .filter(fld::isPossibility)
                                 .forEach(letter -> {

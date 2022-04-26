@@ -7,6 +7,10 @@ import static player.letters.Rack.RackFactory.emptyRack;
 @UtilityClass
 public class RackUtil {
 
+    /**
+     * This method automatically deletes used letters from the passed bag
+     * @return rack of letters randomly drawn from the bag
+     */
     public Rack randomRack(LetterBag bag) {
         Rack rack = emptyRack();
         return randomizeRack(bag, rack);

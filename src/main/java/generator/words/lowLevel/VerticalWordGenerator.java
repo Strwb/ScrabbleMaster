@@ -34,10 +34,12 @@ public class VerticalWordGenerator implements WordGenerator {
     ScrabbleDictionary dictionary;
     List<WordCandidate> generatedWords;
 
+    @Override
     public List<WordCandidate> generatedWords() {
         return this.generatedWords;
     }
 
+    @Override
     public void generate() {
         extendDown(generateUpper());
     }
@@ -125,7 +127,7 @@ public class VerticalWordGenerator implements WordGenerator {
 
         field.ifPresent(fld -> {
 
-                    if (fld.isEmpty()) {
+                    if (fld.isEmpty() && startCheckPassed(anchorRow, anchorCol, space)) {
 
                         rack.getLetters().stream()
                                 .filter(fld::isPossibility)

@@ -46,7 +46,7 @@ public class SimulationFuncTest {
 
         board.printBoard();
 
-        Optional<Word> bestWord = simulation.simulate(board, rack);
+        Optional<Word> bestWord = simulation.simulateWithoutScore(board, rack);
 
         if (bestWord.isPresent()) {
             board = board.addWords(bestWord.get());

@@ -27,7 +27,6 @@ public class PossibilitiesGenerator {
         Set<Character> vertical = intersection(up, down);
         Set<Character> horizontal = intersection(left, right);
 
-//        return intersection(vertical, horizontal);
         var result = intersection(vertical, horizontal);
         return result;
     }

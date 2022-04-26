@@ -46,18 +46,22 @@ public class LongTermSimulation {
         Rack opponentRack = RackUtil.randomRack(bag);
 
         board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
+        bag.deleteUsedLetters(board);
 
         System.out.println("START BOARD");
         board.printBoard();
 
         List<Word> generatedWords = new ArrayList<>();
 
-        for (int i = 0; i < 3; i++) {
-            Optional<Word> playerWord = simulation.simulate(board.clone(), playerRack);
+        for (int i = 0; i < 8   ; i++) {
+            Optional<Word> playerWord = simulation.simulateWithoutScore(board.clone(), playerRack, bag);
             if (playerWord.isPresent()) {
+                bag.deleteWord(playerWord.get());
                 board = board.addWords(playerWord.get());
                 board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
-                System.out.println("PLAYER MOVE");
+//                System.out.println("PLAYER MOVE");
+//                System.out.println("WORD: " + playerWord.get().stringForm());
+//                System.out.println("SCORE: " + playerWord.get().getWordScore());
                 board.printBoard();
                 playerRack = playerRack.withoutLetters(playerWord.get());
                 playerRack = RackUtil.drawLetters(bag, playerRack);
@@ -65,11 +69,14 @@ public class LongTermSimulation {
             }
 
 
-            Optional<Word> opponentWord = simulation.simulate(board.clone(), opponentRack);
+            Optional<Word> opponentWord = simulation.simulateWithoutScore(board.clone(), opponentRack, bag);
             if (opponentWord.isPresent()) {
+                bag.deleteWord(opponentWord.get());
                 board = board.addWords(opponentWord.get());
                 board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
-                System.out.println("OPPONENT MOVE");
+//                System.out.println("OPPONENT MOVE");
+//                System.out.println("WORD: " + opponentWord.get().stringForm());
+//                System.out.println("SCORE: " + opponentWord.get().getWordScore());
                 board.printBoard();
                 opponentRack = opponentRack.withoutLetters(opponentWord.get());
                 opponentRack = RackUtil.drawLetters(bag, opponentRack);
@@ -79,9 +86,31 @@ public class LongTermSimulation {
         }
 
 
-
         board.printBoard();
 
         assertThat(generatedWords).isNotEmpty();
+    }
+
+    @Test
+    public void shouldFindWordEmptyBoard() {
+
+        Board board = freshScrabbleBoard();
+        LetterBag bag = LetterBag.initialBag();
+        Rack playerRack = RackUtil.randomRack(bag);
+        Rack opponentRack = RackUtil.randomRack(bag);
+        board.updatePossibilities(possibilitiesFactory.generatePossibilities(board.getAnchors(), board));
+        var anchors = board.getAnchors();
+        System.out.println("START BOARD");
+        board.printBoard();
+
+        Optional<Word> playerWord = simulation.simulateWithoutScore(board.clone(), playerRack, bag);
+        if (playerWord.isPresent()) {
+            bag.deleteWord(playerWord.get());
+            board = board.addWords(playerWord.get());
+            System.out.println("PLAYER MOVE");
+            System.out.println("WORD: " + playerWord.get().stringForm());
+            System.out.println("SCORE: " + playerWord.get().getWordScore());
+            board.printBoard();
+        }
     }
 }

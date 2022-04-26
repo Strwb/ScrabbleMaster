@@ -38,22 +38,31 @@ public class Simulation {
         possibilitiesFactory = new PossibilitiesFactory(dictionary);
     }
 
-    public Optional<Word> simulate(Board board, Rack playerRack) {
+    public Optional<Word> simulateWithoutScore(Board board, Rack playerRack) {
         LetterBag bag = LetterBag.initialBag();
+        return simulateWithoutScore(board, playerRack, bag);
+    }
+
+    public Optional<Word> simulateWithoutScore(Board board, Rack playerRack, LetterBag bag) {
+        return simulate(board, playerRack, bag).map(SimulationResult::word);
+    }
+
+    public Optional<SimulationResult> simulateWithScore(Board board, Rack playerRack) {
+        LetterBag bag = LetterBag.initialBag();
+        return simulateWithScore(board, playerRack, bag);
+    }
+
+    public Optional<SimulationResult> simulateWithScore(Board board, Rack playerRack, LetterBag bag) {
         return simulate(board, playerRack, bag);
     }
 
-    public Optional<Word> simulate(Board board, Rack playerRack, LetterBag bag) {
-        bag = bag.deleteUsedLetters(board, playerRack);
+    private Optional<SimulationResult> simulate(Board board, Rack playerRack, LetterBag bag) {
         List<Word> wordCandidates = playerWordCandidates(board, playerRack);
-
 
         List<SimulationResult> simulationResults = performSimulation(wordCandidates, board, playerRack, bag);
 
-        Optional<SimulationResult> bestResult = simulationResults.stream()
+        return simulationResults.stream()
                 .max(Comparator.comparing(SimulationResult::score));
-
-        return bestResult.map(SimulationResult::word);
     }
 
     List<SimulationResult> performSimulation(List<Word> words, Board board, Rack playerRack, LetterBag bag) {

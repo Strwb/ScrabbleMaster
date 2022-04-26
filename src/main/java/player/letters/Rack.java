@@ -53,6 +53,12 @@ public class Rack implements Serializable {
         }
     }
 
+    public String print() {
+        StringBuilder sb = new StringBuilder();
+        letters.forEach(letter -> sb.append(letter).append(" "));
+        return sb.toString();
+    }
+
     public Rack clone() {
         return SerializationUtils.clone(this);
     }

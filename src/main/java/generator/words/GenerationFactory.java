@@ -37,8 +37,6 @@ public class GenerationFactory {
         return findBestMove(board, rack, anchors);
     }
 
-    // sam ruch -> 40ms, 52, 39, 49, 45 (4 watki)
-    // sam ruch ->  64, 42, 42, 41 (1 watek)
     private Optional<Word> generateMove(Board board, Rack rack, Set<Anchor> anchors) {
         return GeneratorUtil.getMaxWord(findBestMove(board, rack, anchors));
     }
